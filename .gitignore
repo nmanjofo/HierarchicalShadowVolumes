@@ -286,3 +286,4 @@ __pycache__/
 *.odx.cs
 *.xsd.cs
 /build64
+/bin/*.exe
