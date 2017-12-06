@@ -150,7 +150,7 @@ bool Application::Run()
         return false;
 
     //Enter Your model path HERE
-	const char* model = "D:\\Models\\2cubes.obj";
+	const char* model = "models\\cutCube.obj";
 	//const char* model = "models\\earth.obj";
 	if (!addModelFileToScene(model, _scene))
 	{

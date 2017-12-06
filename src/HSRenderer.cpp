@@ -71,9 +71,9 @@ void HierarchicalSilhouetteRenderer::onWindowRedraw(glm::mat4 cameraViewProjecti
 {	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	//_drawSides(cameraViewProjectionMatrix);
-	//_drawEdges(cameraViewProjectionMatrix);
-	_drawScenePhong(cameraViewProjectionMatrix, cameraPosition);
+	_drawSides(cameraViewProjectionMatrix);
+	_drawEdges(cameraViewProjectionMatrix);
+	//_drawScenePhong(cameraViewProjectionMatrix, cameraPosition);
 	//_basicProgram.bind();
 	//_basicProgram.updateUniform("vp", cameraViewProjectionMatrix);
 	//glUniformMatrix4fv(_vpLocationBasic, 1, GL_FALSE, glm::value_ptr(cameraViewProjectionMatrix));

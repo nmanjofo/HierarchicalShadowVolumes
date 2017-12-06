@@ -46,10 +46,7 @@ void main()
     vec3 wPos = worldPos.xyz / worldPos.w;
     
     Material mat = materials[materialIndex];
-    //--
-    //outColor = mat.specular;
-    //return;
-    //--
+
     vec3 color = mat.ambient.xyz;
     
     vec3 L = normalize(lightPos - wPos);
@@ -65,13 +62,16 @@ void main()
             
         color += diffuseFactor * mat.diffuse.xyz * texColor.xyz;
         
-        vec3 R = normalize(reflect(-L, N));
-        vec3 V = normalize(cameraPos - wPos);
+        if(mat.shininess>0)
+        {
+            vec3 R = normalize(reflect(-L, N));
+            vec3 V = normalize(cameraPos - wPos);
         
-        float specularFactor = dot(R, V);
+            float specularFactor = dot(R, V);
         
-        if(specularFactor>0)
-            color += pow(specularFactor, mat.shininess) * mat.specular.xyz;
+            if(specularFactor>0)
+                color += pow(specularFactor, mat.shininess) * mat.specular.xyz;
+        }
     }
     
     outColor = vec4(color, 1);
