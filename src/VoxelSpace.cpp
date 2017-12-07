@@ -130,7 +130,7 @@ bool VoxelizedSpace::_isLinearIndexValid(int index) const
 
 bool VoxelizedSpace::_areCoordsValid(int x, int y, int z) const
 {
-	if ((x > int(_numVoxelsX) || x < 0) || (y > int(_numVoxelsY) || y < 0) || (z > int(_numVoxelsZ) || z < 0))
+	if ((x >= int(_numVoxelsX) || x < 0) || (y >= int(_numVoxelsY) || y < 0) || (z >= int(_numVoxelsZ) || z < 0))
 		return false;
 
 	return true;

@@ -16,7 +16,8 @@ HierarchicalSilhouetteRenderer::HierarchicalSilhouetteRenderer()
 bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned int screenWidth, unsigned int screenHeight)
 {
 	_scene = scene;
-	_scene->lightPos = glm::vec3(0, 10, 0);
+	//_scene->lightPos = glm::vec3(0, 9.9, 0);
+	_scene->lightPos = glm::vec3(0, -8, 4);
 	
 	_initVoxelization();
 
@@ -39,6 +40,15 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 		return false;
 
 	const int voxelIndex = _scene->lightSpace.getVoxelLinearIndexFromPointInSpace(_scene->lightPos);
+
+	if(voxelIndex<0)
+	{
+		std::cerr << "Bad voxel index\n";
+		return false;
+	}
+
+	AABB voxel;
+	_scene->lightSpace.getVoxelFromLinearIndex(voxelIndex, voxel);
 
 	_generateSidesFromVoxelIndex(voxelIndex, _sides);
 
@@ -307,13 +317,6 @@ bool HierarchicalSilhouetteRenderer::_loadShaders()
 	return retval;
 }
 
-void HierarchicalSilhouetteRenderer::_initVoxelization()
-{
-	AABB space;
-	space.setMinMaxPoints(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));
-	_scene->lightSpace.init(space, 5, 5, 5);
-}
-
 void HierarchicalSilhouetteRenderer::_drawScenePhong(const glm::mat4& vp, const glm::vec3& cameraPos)
 {
 	assert(glGetError()==GL_NO_ERROR);
@@ -339,4 +342,12 @@ void HierarchicalSilhouetteRenderer::_drawScenePhong(const glm::mat4& vp, const 
 	glBindBufferRange(GL_SHADER_STORAGE_BUFFER, 2, 0, 0, 0);
 
 	assert(glGetError() == GL_NO_ERROR);
+}
+
+void HierarchicalSilhouetteRenderer::_initVoxelization()
+{
+	AABB space;
+	space.setMinMaxPoints(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));
+	_scene->lightSpace.init(space, 5, 5, 5);
+	//_scene->lightSpace.init(space, 2, 2, 2);
 }

@@ -150,8 +150,8 @@ bool Application::Run()
         return false;
 
     //Enter Your model path HERE
-	const char* model = "models\\cutCube.obj";
-	//const char* model = "models\\earth.obj";
+	//const char* model = "models\\cutCube.obj";
+	const char* model = "models\\crudeEarth.obj";
 	if (!addModelFileToScene(model, _scene))
 	{
 		std::cerr << "Failed to load scene: " << std::string(model) << std::endl;
