@@ -1,23 +1,30 @@
 #pragma once
 
 #include <memory>
+#include "AABB.hpp"
 
 #define OCTREE_NUM_CHILDREN 8
 
-class Node
+struct Node
 {
-public:
 	Node();
+	Node(const AABB& volume);
+	Node(const glm::vec3& minPoint, const glm::vec3 maxPoint);
 
+	AABB nodeVolume;
 
+	void subdivide_generateChildren();
 
-private:
-	std::shared_ptr<Node> _children[OCTREE_NUM_CHILDREN];
+	std::shared_ptr<Node> children[OCTREE_NUM_CHILDREN];
 };
 
 
 
 class Octree
 {
-	
+public:
+
+
+private:
+	unsigned int _recursionLevel;
 };

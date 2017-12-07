@@ -20,10 +20,8 @@ struct Material
     vec4 specular;
     float shininess;
     
-    //If negative - material has no texture
     int textureIndex;
 
-    //Alignment to 128bit, in terms of size
     float aligmetVariableDoNotUse1, aligmetVariableDoNotUse2;
 };
 
