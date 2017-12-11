@@ -1,42 +1,21 @@
 #pragma once
 
-#include <memory>
 #include "AABB.hpp"
 #include "CommonTypes.hpp"
 #include <map>
 #include <vector>
+#include <set>
 
 #define OCTREE_NUM_CHILDREN 8
-/*
+
 struct Node
 {
-	enum class Axis
-	{
-		X,
-		Y,
-		Z
-	};
-	
-	Node();
-	Node(const AABB& volume);
-	Node(const glm::vec3& minPoint, const glm::vec3 maxPoint);
+	AABB volume;
 
-	AABB nodeVolume;
-
-	void subdivide_generateChildren();
-
-	int testPoint(const glm::vec3& point) const;
-
-	Plane getSplitPlane(Axis a);
-
-	int getRecursionLevel() const;
-
-	std::shared_ptr<Node> children[OCTREE_NUM_CHILDREN];
-	
-	int id;
+	std::set<unsigned int> edgesAlwaysCast;
+	std::set<unsigned int> edgesMayCast;
 };
 
-*/
 
 class Octree
 {
@@ -51,10 +30,16 @@ public:
 
 	Octree(unsigned int maxRecursionDepth);
 
-	AABB getCell(unsigned int index);
+	AABB getNodeVolume(unsigned int index) const;
 
 	int getNodeParent(unsigned int nodeID) const;
 	int getNodeRecursionLevel(unsigned int nodeID) const;
+	int getNodeIdInLevel(unsigned int nodeID) const;
+	int getNodeIdInLevel(unsigned int nodeID, unsigned int level) const;
+	int getNodeIndexWithinParent(unsigned int nodeID) const;
+	int getNodeIndexWithinParent(unsigned int nodeID, unsigned int parent) const;
+
+	int getChildrenStartingId(unsigned int nodeID) const;
 
 	int getLowestLevelCellIndexFromPointInSpace(const glm::vec3& point);
 
@@ -64,11 +49,18 @@ public:
 
 	void addEdgeToNode(unsigned int edge, unsigned int nodeID);
 
+	int getNumCellsInPreviousLevels(int level) const;
+
 private:
 	unsigned int _maxRecursionLevel;
 
-	std::map<unsigned int, AABB> _nodes;
+	void _generateLimits();
+
+	void _createChild(const AABB& parentSpace, unsigned int childID, unsigned int indexWithinParent);
+	bool _isPointInsideOctree(const glm::vec3& point) const;
+
+	std::map<unsigned int, Node> _nodes;
 	std::map<unsigned int, std::vector<unsigned int> > _edgesInNode;
 
-	std::vector<unsigned int> _levelLimits;
+	std::vector<unsigned int> _numCellsInPreviousLevels;
 };
