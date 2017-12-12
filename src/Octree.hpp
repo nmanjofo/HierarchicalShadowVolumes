@@ -21,14 +21,7 @@ class Octree
 {
 public:
 
-	enum class Axis
-	{
-		X,
-		Y,
-		Z
-	};
-
-	Octree(unsigned int maxRecursionDepth);
+	Octree(unsigned int maxRecursionDepth, const AABB& volume);
 
 	AABB getNodeVolume(unsigned int index) const;
 
@@ -47,17 +40,22 @@ public:
 
 	void splitNode(unsigned int nodeID);
 
-	void addEdgeToNode(unsigned int edge, unsigned int nodeID);
 
-	int getNumCellsInPreviousLevels(int level) const;
+	void addEdgeToNode(unsigned int edge, unsigned int nodeID);
+	void addEdgeToOctree(const Edge& edge, unsigned int edgeID);
+
+	unsigned int getNumCellsInPreviousLevels(int level) const;
 
 private:
-	unsigned int _maxRecursionLevel;
+	unsigned int _recursionLevels;
 
 	void _generateLimits();
+	void _init(const AABB& volume);
 
 	void _createChild(const AABB& parentSpace, unsigned int childID, unsigned int indexWithinParent);
+	int _getCorrespondingChildIndexFromPoint(unsigned int nodeID, const glm::vec3& point) const;
 	bool _isPointInsideOctree(const glm::vec3& point) const;
+	bool _nodeExists(unsigned int nodeID) const;
 
 	std::map<unsigned int, Node> _nodes;
 	std::map<unsigned int, std::vector<unsigned int> > _edgesInNode;

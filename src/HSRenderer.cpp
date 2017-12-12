@@ -56,6 +56,11 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 
 	_updateSides();
 
+	AABB space;
+	space.setMinMaxPoints(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));
+	_octree = std::make_shared<Octree>(3, space);
+	_testOctree();
+
 	return true;
 }
 
@@ -350,4 +355,39 @@ void HierarchicalSilhouetteRenderer::_initVoxelization()
 	space.setMinMaxPoints(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));
 	_scene->lightSpace.init(space, 5, 5, 5);
 	//_scene->lightSpace.init(space, 2, 2, 2);
+}
+
+void HierarchicalSilhouetteRenderer::_testOctree()
+{
+	auto a = _octree->getNodeParent(0);
+	a = _octree->getNodeParent(70);
+
+	_octree->splitNode(0);
+
+	_octree->splitNode(1);
+	_octree->splitNode(2);
+	_octree->splitNode(3);
+	_octree->splitNode(4);
+	_octree->splitNode(5);
+	_octree->splitNode(6);
+	_octree->splitNode(7);
+	_octree->splitNode(8);
+
+	//Should trigger assertion
+	//_octree->splitNode(1000);
+
+	a = _octree->getChildrenStartingId(0);
+	a = _octree->getChildrenStartingId(15);
+	a = _octree->getChildrenStartingId(7);
+	a = _octree->getChildrenStartingId(40);
+
+	a = _octree->getNodeRecursionLevel(22);
+
+	a = _octree->getLowestLevelCellIndexFromPointInSpace(glm::vec3(1000, 0, 0));
+	a = _octree->getLowestLevelCellIndexFromPointInSpace(glm::vec3(0, 0, 0));
+	AABB bb = _octree->getNodeVolume(a);
+
+	a = _octree->getLowestLevelCellIndexFromPointInSpace(glm::vec3(5, 8, 2));
+	bb = _octree->getNodeVolume(a);
+
 }

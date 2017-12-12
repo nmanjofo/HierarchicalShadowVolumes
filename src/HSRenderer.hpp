@@ -11,6 +11,7 @@
 #include "EdgeVisualizer.hpp"
 #include "OGLScene.hpp"
 #include "GLProgram.hpp"
+#include "Octree.hpp"
 
 class HierarchicalSilhouetteRenderer
 {
@@ -66,6 +67,8 @@ private:
 	bool _loadShaders();
 	bool _makeProgram(const char* vsPath, const char* fsPath, GLuint& program);
 
+	void _testOctree();
+
 	GLuint _sidesVBO;
 	GLuint _sidesVAO;
 
@@ -76,4 +79,6 @@ private:
 	EdgeVisualizer _edgeVisualizer;
 
 	OGLScene	   _oglScene;
+
+	std::shared_ptr<Octree>	_octree;
 };
