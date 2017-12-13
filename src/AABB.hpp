@@ -3,7 +3,6 @@
 #include <glm/glm.hpp>
 
 
-
 //Axis-aligned bounding box
 struct AABB
 {
@@ -34,8 +33,6 @@ struct AABB
 
 	void applyTransform(const glm::mat4& matrix);
 
-	bool testIsPointInside(const glm::vec3& point) const;
-
 private:
 
 	void _updateExtents();
@@ -43,8 +40,6 @@ private:
 	void _updateWithVertexInternal(const glm::vec4& vertex);
 
 	void _updateWithVertexInternal(const glm::vec3& vertex);
-
-	bool _isInRange(float value, float min, float max) const;
 
 	float _extentX;
 	float _extentY;

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "CommonTypes.hpp"
+//#include "CommonTypes.hpp"
+#include "Edge.hpp"
 
 #include <GL/glew.h>
 

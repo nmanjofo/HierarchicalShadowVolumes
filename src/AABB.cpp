@@ -168,13 +168,3 @@ void AABB::_updateWithVertexInternal(const glm::vec3& vertex)
 	if (vertex.z > _maxPoint.z)
 		_maxPoint.z = vertex.z;
 }
-
-bool AABB::testIsPointInside(const glm::vec3& point) const
-{
-	return _isInRange(point.x, _minPoint.x, _maxPoint.x) & _isInRange(point.y, _minPoint.y, _maxPoint.y) & _isInRange(point.z, _minPoint.z, _maxPoint.z);
-}
-
-bool AABB::_isInRange(float value, float min, float max) const
-{
-	return value >= min && value <= max;
-}

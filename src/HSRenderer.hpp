@@ -6,7 +6,9 @@
 #include <GL/glew.h>
 
 #include "Scene.hpp"
-#include "CommonTypes.hpp"
+#include "Edge.hpp"
+#include "Plane.hpp"
+#include "Triangle.hpp"
 #include "MultiBitArray.hpp"
 #include "EdgeVisualizer.hpp"
 #include "OGLScene.hpp"

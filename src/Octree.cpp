@@ -1,5 +1,7 @@
 #include "Octree.hpp"
 
+#include "IntersectionTests.hpp"
+
 int ipow(int base, int exp)
 {
 	int result = 1;
@@ -225,7 +227,8 @@ bool Octree::_isPointInsideOctree(const glm::vec3& point) const
 	
 	assert(iter != _nodes.end());
 
-	return iter->second.volume.testIsPointInside(point);
+	//return iter->second.volume.testIsPointInside(point);
+	return IntersectTest::testAabbPointIsInsideOrOn(iter->second.volume, point);
 }
 
 void Octree::addEdgeToOctree(const Edge& edge, unsigned int edgeID)

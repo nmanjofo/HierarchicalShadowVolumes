@@ -1,6 +1,7 @@
 #pragma once
 
-#include "CommonTypes.hpp"
+#include "Triangle.hpp"
+#include "Edge.hpp"
 
 #include <vector>
 #include <map>

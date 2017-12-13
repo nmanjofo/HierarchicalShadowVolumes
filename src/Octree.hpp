@@ -1,7 +1,7 @@
 #pragma once
 
 #include "AABB.hpp"
-#include "CommonTypes.hpp"
+#include "Edge.hpp"
 #include <map>
 #include <vector>
 #include <set>
@@ -12,7 +12,7 @@ struct Node
 {
 	AABB volume;
 
-	std::set<unsigned int> edgesAlwaysCast;
+	std::set<int> edgesAlwaysCast; //edge sign = winding
 	std::set<unsigned int> edgesMayCast;
 };
 

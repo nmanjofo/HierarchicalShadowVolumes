@@ -23,18 +23,21 @@ set(SRC_FILES
 	${PROJECT_SRC_DIR}/AABB.cpp
 	${PROJECT_SRC_DIR}/Application.cpp
 	${PROJECT_SRC_DIR}/CameraPath.cpp
+    ${PROJECT_SRC_DIR}/Edge.cpp
     ${PROJECT_SRC_DIR}/EdgeExtractor.cpp
 	${PROJECT_SRC_DIR}/EdgeVisualizer.cpp
 	${PROJECT_SRC_DIR}/FreelookCamera.cpp
     ${PROJECT_SRC_DIR}/GLProgram.cpp
 	${PROJECT_SRC_DIR}/HighResolutionTimer.cpp
 	${PROJECT_SRC_DIR}/HSRenderer.cpp
+    ${PROJECT_SRC_DIR}/IntersectionTests.cpp
 	${PROJECT_SRC_DIR}/main.cpp
 	${PROJECT_SRC_DIR}/ModelLoader.cpp
 	${PROJECT_SRC_DIR}/MultiBitArray.cpp
     ${PROJECT_SRC_DIR}/Octree.cpp
     ${PROJECT_SRC_DIR}/OGLScene.cpp
 	${PROJECT_SRC_DIR}/OrbitalCamera.cpp
+    ${PROJECT_SRC_DIR}/Plane.cpp
 	${PROJECT_SRC_DIR}/SceneLoader.cpp
 	${PROJECT_SRC_DIR}/ShaderCompiler.cpp
 	${PROJECT_SRC_DIR}/TextureLoader.cpp
@@ -46,22 +49,25 @@ set(HEADER_FILES
 	${PROJECT_SRC_DIR}/Application.hpp
 	${PROJECT_SRC_DIR}/BitOperations.h
 	${PROJECT_SRC_DIR}/CameraPath.h
-	${PROJECT_SRC_DIR}/CommonTypes.hpp
+    ${PROJECT_SRC_DIR}/Edge.hpp
     ${PROJECT_SRC_DIR}/EdgeExtractor.hpp
 	${PROJECT_SRC_DIR}/EdgeVisualizer.hpp
 	${PROJECT_SRC_DIR}/FreelookCamera.hpp
     ${PROJECT_SRC_DIR}/GLProgram.hpp
 	${PROJECT_SRC_DIR}/HighResolutionTimer.hpp
 	${PROJECT_SRC_DIR}/HSRenderer.hpp
+    ${PROJECT_SRC_DIR}/IntersectionTests.hpp
 	${PROJECT_SRC_DIR}/ModelLoader.hpp
 	${PROJECT_SRC_DIR}/MultiBitArray.hpp
     ${PROJECT_SRC_DIR}/Octree.hpp
     ${PROJECT_SRC_DIR}/OGLScene.hpp
 	${PROJECT_SRC_DIR}/OrbitalCamera.hpp
+    ${PROJECT_SRC_DIR}/Plane.hpp
 	${PROJECT_SRC_DIR}/Scene.hpp
 	${PROJECT_SRC_DIR}/SceneLoader.hpp
 	${PROJECT_SRC_DIR}/ShaderCompiler.hpp
 	${PROJECT_SRC_DIR}/TextureLoader.hpp
+    ${PROJECT_SRC_DIR}/Triangle.hpp
 	${PROJECT_SRC_DIR}/VoxelSpace.hpp
 )
 
