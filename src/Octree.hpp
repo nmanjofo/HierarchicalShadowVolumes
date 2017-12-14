@@ -40,9 +40,7 @@ public:
 
 	void splitNode(unsigned int nodeID);
 
-
-	void addEdgeToNode(unsigned int edge, unsigned int nodeID);
-	void addEdgeToOctree(const Edge& edge, unsigned int edgeID);
+	Node* getNode(unsigned int nodeID);
 
 	unsigned int getNumCellsInPreviousLevels(int level) const;
 

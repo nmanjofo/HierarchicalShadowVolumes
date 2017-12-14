@@ -1,6 +1,6 @@
 #include "Octree.hpp"
 
-#include "IntersectionTests.hpp"
+#include "GeometryOperations.hpp"
 
 int ipow(int base, int exp)
 {
@@ -45,6 +45,16 @@ void Octree::_init(const AABB& volume)
 	n.volume = volume;
 
 	_nodes[0] = n;
+}
+
+Node* Octree::getNode(unsigned int nodeID)
+{
+	auto n = _nodes.find(nodeID);
+
+	if (n == _nodes.end())
+		return nullptr;
+
+	return &n->second;
 }
 
 AABB Octree::getNodeVolume(unsigned int nodeID) const
@@ -149,11 +159,6 @@ void Octree::splitNode(unsigned int nodeID)
 		_createChild(nodeVolume, startingIndex + i, i);
 }
 
-void Octree::addEdgeToNode(unsigned int edge, unsigned int nodeID)
-{
-	
-}
-
 unsigned int Octree::getNumCellsInPreviousLevels(int level) const
 {
 	assert(level < int(_numCellsInPreviousLevels.size()));
@@ -227,11 +232,5 @@ bool Octree::_isPointInsideOctree(const glm::vec3& point) const
 	
 	assert(iter != _nodes.end());
 
-	//return iter->second.volume.testIsPointInside(point);
-	return IntersectTest::testAabbPointIsInsideOrOn(iter->second.volume, point);
-}
-
-void Octree::addEdgeToOctree(const Edge& edge, unsigned int edgeID)
-{
-	
+	return GeometryOps::testAabbPointIsInsideOrOn(iter->second.volume, point);
 }

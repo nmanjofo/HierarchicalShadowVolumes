@@ -30,11 +30,12 @@ set(SRC_FILES
     ${PROJECT_SRC_DIR}/GLProgram.cpp
 	${PROJECT_SRC_DIR}/HighResolutionTimer.cpp
 	${PROJECT_SRC_DIR}/HSRenderer.cpp
-    ${PROJECT_SRC_DIR}/IntersectionTests.cpp
+    ${PROJECT_SRC_DIR}/GeometryOperations.cpp
 	${PROJECT_SRC_DIR}/main.cpp
 	${PROJECT_SRC_DIR}/ModelLoader.cpp
 	${PROJECT_SRC_DIR}/MultiBitArray.cpp
     ${PROJECT_SRC_DIR}/Octree.cpp
+    ${PROJECT_SRC_DIR}/OctreeVisitor.cpp
     ${PROJECT_SRC_DIR}/OGLScene.cpp
 	${PROJECT_SRC_DIR}/OrbitalCamera.cpp
     ${PROJECT_SRC_DIR}/Plane.cpp
@@ -56,10 +57,11 @@ set(HEADER_FILES
     ${PROJECT_SRC_DIR}/GLProgram.hpp
 	${PROJECT_SRC_DIR}/HighResolutionTimer.hpp
 	${PROJECT_SRC_DIR}/HSRenderer.hpp
-    ${PROJECT_SRC_DIR}/IntersectionTests.hpp
+    ${PROJECT_SRC_DIR}/GeometryOperations.hpp
 	${PROJECT_SRC_DIR}/ModelLoader.hpp
 	${PROJECT_SRC_DIR}/MultiBitArray.hpp
     ${PROJECT_SRC_DIR}/Octree.hpp
+    ${PROJECT_SRC_DIR}/OctreeVisitor.hpp
     ${PROJECT_SRC_DIR}/OGLScene.hpp
 	${PROJECT_SRC_DIR}/OrbitalCamera.hpp
     ${PROJECT_SRC_DIR}/Plane.hpp

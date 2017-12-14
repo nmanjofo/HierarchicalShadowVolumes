@@ -46,11 +46,9 @@ private:
 
 	//Testing edges against voxels
 	void _generatePerEdgeVoxelInfo(const VoxelizedSpace& lightSpace);
-	void _buildTrianglePlane(const Edge& edge, const glm::vec4& oppositeVertex, Plane& plane);
 
 	//Sides generator
 	void _generateSidesFromVoxelIndex(unsigned int voxelLinearIndex, std::vector<glm::vec4>& sides);
-	int  _calcEdgeMultiplicity(const std::pair<Edge, std::vector<glm::vec4> >& edge, const glm::vec3& lightPos) const;
 	void _generatePushSideFromEdge(const glm::vec3& lightPos, const Edge& edge, int multiplicitySign, std::vector<glm::vec4>& sides) const;
 
 	//Shadow volume rendering
@@ -67,7 +65,6 @@ private:
 	//OpenGL
 	void _initGL(unsigned int screenWidth, unsigned int screenHeight);
 	bool _loadShaders();
-	bool _makeProgram(const char* vsPath, const char* fsPath, GLuint& program);
 
 	void _testOctree();
 

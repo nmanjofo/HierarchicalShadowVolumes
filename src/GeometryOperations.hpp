@@ -2,6 +2,9 @@
 
 #include "AABB.hpp"
 #include "Plane.hpp"
+#include "Edge.hpp"
+
+#include <vector>
 
 enum class EdgeSilhouetness : int
 {
@@ -20,7 +23,7 @@ enum class TestResult : int
 	INTERSECTS_ON = 0
 };
 
-namespace IntersectTest
+namespace GeometryOps
 {
 	float testPlanePoint(const Plane& plane, const glm::vec3& point);
 
@@ -29,4 +32,10 @@ namespace IntersectTest
 	TestResult testAabbPlane(const AABB& bbox, const Plane& plane);
 
 	TestResult interpretResult(float result);
+
+	EdgeSilhouetness testEdgeSpaceAabb(const Plane& p1, const Plane& p2, const std::pair<Edge, std::vector<glm::vec4> >& edgeInfo, const AABB& voxel);
+
+	int calcEdgeMultiplicity(const std::pair<Edge, std::vector<glm::vec4> >& edgeInfo, const glm::vec3& lightPos);
+
+	void buildEdgeTrianglePlane(const Edge& edge, const glm::vec4& oppositeVertex, Plane& plane);
 };

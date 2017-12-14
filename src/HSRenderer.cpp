@@ -7,7 +7,7 @@
 
 #include "MultiBitArray.hpp"
 #include "EdgeExtractor.hpp"
-#include "IntersectionTests.hpp"
+#include "GeometryOperations.hpp"
 
 HierarchicalSilhouetteRenderer::HierarchicalSilhouetteRenderer()
 {
@@ -155,26 +155,16 @@ void HierarchicalSilhouetteRenderer::_generatePerEdgeVoxelInfo(const VoxelizedSp
 		{
 			Plane p1, p2;
 			
-			_buildTrianglePlane(edge.first, edge.second[0], p1);
-			_buildTrianglePlane(edge.first, edge.second[1], p2);
+			GeometryOps::buildEdgeTrianglePlane(edge.first, edge.second[0], p1);
+			GeometryOps::buildEdgeTrianglePlane(edge.first, edge.second[1], p2);
 
 			const unsigned int numVoxels = lightSpace.getNumVoxels();
 			for (unsigned int i = 0; i < numVoxels; ++i)
 			{
 				AABB voxel;
 				lightSpace.getVoxelFromLinearIndex(i, voxel);
-				auto result1 = IntersectTest::testAabbPlane(voxel, p1);//p1.testAABB(voxel);
-				auto result2 = IntersectTest::testAabbPlane(voxel, p2);//p2.testAABB(voxel);
-				
-				int result = int(EdgeSilhouetness::EDGE_NOT_SILHOUETTE);
 
-				if (result1 == TestResult::INTERSECTS_ON || result2 == TestResult::INTERSECTS_ON)
-					result = int(EdgeSilhouetness::EDGE_POTENTIALLY_SILHOUETTE);
-				else if ((int(result1)*int(result2)) < 0)
-				{
-					int multiplicity = _calcEdgeMultiplicity(edge, voxel.getMinPoint());
-					result = int(EdgeSilhouetness::EDGE_IS_SILHOUETTE_PLUS) + (multiplicity<0);
-				}
+				int result = int(GeometryOps::testEdgeSpaceAabb(p1, p2, edge, voxel));
 
 				ma.setCellContent(i, result);
 			}
@@ -182,16 +172,6 @@ void HierarchicalSilhouetteRenderer::_generatePerEdgeVoxelInfo(const VoxelizedSp
 
 		_edgeBitmasks.push_back(ma);
 	}
-}
-
-void HierarchicalSilhouetteRenderer::_buildTrianglePlane(const Edge& edge, const glm::vec4& oppositeVertex, Plane& plane)
-{
-	const bool isCCW = EdgeExtractor::decodeEdgeWindingIsCCW(oppositeVertex);
-
-	if (isCCW)
-		plane.createFromPointsCCW(edge.lowerPoint, edge.higherPoint, glm::vec3(oppositeVertex));
-	else
-		plane.createFromPointsCCW(edge.higherPoint, edge.lowerPoint, glm::vec3(oppositeVertex));
 }
 
 void HierarchicalSilhouetteRenderer::_generateSidesFromVoxelIndex(unsigned int voxelLinearIndex, std::vector<glm::vec4>& sides)
@@ -212,30 +192,13 @@ void HierarchicalSilhouetteRenderer::_generateSidesFromVoxelIndex(unsigned int v
 
 		if (result == int(EdgeSilhouetness::EDGE_POTENTIALLY_SILHOUETTE))
 		{
-			int r = _calcEdgeMultiplicity(edge, _scene->lightPos);
+			int r = GeometryOps::calcEdgeMultiplicity(edge, _scene->lightPos);
 			if(r!=0)
 				_generatePushSideFromEdge(_scene->lightPos, edge.first, r, sides);
 		}
 
 		++i;
 	}
-}
-
-int HierarchicalSilhouetteRenderer::_calcEdgeMultiplicity(const std::pair<Edge, std::vector<glm::vec4> >& edgeInfo, const glm::vec3& lightPos) const
-{
-	const auto& edge = edgeInfo.first;
-	const auto& oppositeVertices = edgeInfo.second;
-
-	Plane lightPlane;
-	lightPlane.createFromPointsCCW(edge.lowerPoint, edge.higherPoint, lightPos);
-	int multiplicity = 0;
-	for (const auto& oppositeVertex : oppositeVertices)
-	{
-		const float r = IntersectTest::testPlanePoint(lightPlane, glm::vec3(oppositeVertex));//lightPlane.testPoint(glm::vec3(oppositeVertex));
-		multiplicity += (r > 0) - (r < 0);
-	}
-
-	return multiplicity;
 }
 
 void HierarchicalSilhouetteRenderer::_generatePushSideFromEdge(const glm::vec3& lightPos, const Edge& edge, int multiplicitySign, std::vector<glm::vec4>& sides) const
