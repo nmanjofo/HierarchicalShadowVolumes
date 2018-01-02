@@ -27,7 +27,17 @@ void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4> >& edge
 		EdgeSilhouetness testResult = GeometryOps::testEdgeSpaceAabb(p1, p2, edgeInfo, _octree->getNodeVolume(0));
 
 		if (EDGE_IS_SILHOUETTE(testResult))
+		{
 			_storeEdgeIsAlwaysSilhouette(testResult, node, edgeID);
+
+			int parent = _octree->getNodeParent(node);
+			if (parent >= 0)
+				_removePotentiallySilhouetteEdgeFromNode(edgeID, parent);
+		}
+		else if(testResult==EdgeSilhouetness::EDGE_POTENTIALLY_SILHOUETTE)
+		{
+			_storeEdgeIsPotentiallySilhouette(node, edgeID);
+		}
 	}
 }
 
@@ -42,4 +52,46 @@ void OctreeVisitor::_storeEdgeIsAlwaysSilhouette(EdgeSilhouetness testResult, un
 	
 	if (testResult == EdgeSilhouetness::EDGE_IS_SILHOUETTE_MINUS)
 		node->edgesAlwaysCast.insert(-int(edgeID));
+}
+
+void OctreeVisitor::_unmarkEdgeAsPotentiallySilhouetteFromNodeUp(unsigned int edgeID, unsigned int nodeID)
+{
+	int currentNode = nodeID;
+
+	do
+	{
+		_removePotentiallySilhouetteEdgeFromNode(edgeID, currentNode);
+		currentNode = _octree->getNodeParent(currentNode);
+
+	} while (nodeID >= 0);
+}
+
+void OctreeVisitor::_removePotentiallySilhouetteEdgeFromNode(unsigned int edgeID, unsigned int nodeID)
+{
+	auto node = _octree->getNode(nodeID);
+
+	assert(node != nullptr);
+
+	node->edgesMayCast.erase(node->edgesMayCast.find(edgeID));
+}
+
+void OctreeVisitor::_storeEdgeIsPotentiallySilhouette(unsigned int nodeID, unsigned int edgeID)
+{
+	auto node = _octree->getNode(nodeID);
+
+	assert(node != nullptr);
+
+	node->edgesMayCast.insert(edgeID);
+}
+
+void OctreeVisitor::processPotentialEdges()
+{
+	const auto maxDepth = _octree->getMaxRecursionLevel();
+	const unsigned int startingNode = _octree->getNumCellsInPreviousLevels(maxDepth-1);
+	const unsigned int endNode = startingNode + ipow(8, maxDepth-1);
+
+	for(unsigned int i = startingNode; i<endNode; ++i)
+	{
+		
+	}
 }

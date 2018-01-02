@@ -8,6 +8,8 @@
 
 #define OCTREE_NUM_CHILDREN 8
 
+int ipow(int base, int exp);
+
 struct Node
 {
 	AABB volume;
@@ -43,9 +45,10 @@ public:
 	Node* getNode(unsigned int nodeID);
 
 	unsigned int getNumCellsInPreviousLevels(int level) const;
+	unsigned int getMaxRecursionLevel() const;
 
 private:
-	unsigned int _recursionLevels;
+	unsigned int _maxRecursionDepth;
 
 	void _generateLimits();
 	void _init(const AABB& volume);
@@ -58,5 +61,5 @@ private:
 	std::map<unsigned int, Node> _nodes;
 	std::map<unsigned int, std::vector<unsigned int> > _edgesInNode;
 
-	std::vector<unsigned int> _numCellsInPreviousLevels;
+	std::vector<unsigned int> _levelSizes;
 };

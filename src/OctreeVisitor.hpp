@@ -14,10 +14,11 @@ public:
 
 	void processPotentialEdges();
 
-
-
 private:
 	void _storeEdgeIsAlwaysSilhouette(EdgeSilhouetness testResult, unsigned int nodeId, unsigned int edgeID);
+	void _storeEdgeIsPotentiallySilhouette(unsigned int nodeID, unsigned int edgeID);
+	void _unmarkEdgeAsPotentiallySilhouetteFromNodeUp(unsigned int edgeID, unsigned int nodeID);
+	void _removePotentiallySilhouetteEdgeFromNode(unsigned int edgeID, unsigned int nodeID);
 
 	std::shared_ptr<Octree> _octree;
 
