@@ -31,7 +31,7 @@ void Octree::_generateLimits()
 
 	unsigned int prefixSum = 0;
 	//TODO - je tu ozaj "<"?
-	for(unsigned int i=0; i<_maxRecursionDepth; ++i)
+	for(unsigned int i=0; i<=_maxRecursionDepth; ++i)
 	{
 		const unsigned int levelSize = ipow(8, i);
 		_levelSizes.push_back(levelSize + prefixSum);
@@ -119,7 +119,7 @@ int Octree::getLowestLevelCellIndexFromPointInSpace(const glm::vec3& point)
 	unsigned int recursionLevel = 0;
 	unsigned int currentNode = 0;
 	
-	while(recursionLevel<_maxRecursionDepth)
+	while(recursionLevel<=_maxRecursionDepth)
 	{
 		const int startingChild = getChildrenStartingId(currentNode);
 
@@ -145,7 +145,7 @@ int Octree::_getCorrespondingChildIndexFromPoint(unsigned int nodeID, const glm:
 
 bool Octree::_nodeExists(unsigned int nodeID) const
 {
-	return (nodeID<getNumCellsInPreviousLevels(_maxRecursionDepth -1)) && (_nodes.find(nodeID) != _nodes.end());
+	return (nodeID<getNumCellsInPreviousLevels(_maxRecursionDepth)) && (_nodes.find(nodeID) != _nodes.end());
 }
 
 void Octree::splitNode(unsigned int nodeID)
@@ -162,7 +162,7 @@ unsigned int Octree::getNumCellsInPreviousLevels(int level) const
 {
 	assert(level < int(_levelSizes.size()));
 
-	if (level < 0 || level>= _maxRecursionDepth)
+	if (level < 0 || level> _maxRecursionDepth)
 		return 0;
 
 	return _levelSizes[level];

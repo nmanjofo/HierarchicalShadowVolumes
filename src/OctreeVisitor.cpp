@@ -87,11 +87,16 @@ void OctreeVisitor::_storeEdgeIsPotentiallySilhouette(unsigned int nodeID, unsig
 void OctreeVisitor::processPotentialEdges()
 {
 	const auto maxDepth = _octree->getMaxRecursionLevel();
-	const unsigned int startingNode = _octree->getNumCellsInPreviousLevels(maxDepth-1);
-	const unsigned int endNode = startingNode + ipow(8, maxDepth-1);
+	const unsigned int startingNode = _octree->getNumCellsInPreviousLevels(maxDepth);
+	const unsigned int endNode = startingNode + ipow(8, maxDepth);
 
 	for(unsigned int i = startingNode; i<endNode; ++i)
 	{
-		
+		const auto node = _octree->getNode(i);
+
+		if(node)
+		{
+			
+		}
 	}
 }
