@@ -29,25 +29,31 @@ void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4> >& edge
 		if (EDGE_IS_SILHOUETTE(testResult))
 		{
 			_storeEdgeIsAlwaysSilhouette(testResult, node, edgeID);
-
-			//int parent = _octree->getNodeParent(node);
-			//if (parent >= 0)
-			//	_removePotentiallySilhouetteEdgeFromNode(edgeID, parent);
 		}
-		else if(testResult==EdgeSilhouetness::EDGE_POTENTIALLY_SILHOUETTE)
-		{
-			_storeEdgeIsPotentiallySilhouette(node, edgeID);
-		}
-
-		if(EDGE_IS_SILHOUETTE(testResult) || testResult == EdgeSilhouetness::EDGE_POTENTIALLY_SILHOUETTE)
+		else if (testResult == EdgeSilhouetness::EDGE_POTENTIALLY_SILHOUETTE)
 		{
 			const int childrenStart = _octree->getChildrenStartingId(node);
 
 			if (childrenStart >= 0)
 			{
+				bool childrenExist = false;
+
 				for (int i = 0; i < OCTREE_NUM_CHILDREN; ++i)
-					nodeStack.push(childrenStart + i);
+				{
+					const unsigned int childID = childrenStart + i;
+
+					if(_octree->nodeExists(childID))
+					{
+						nodeStack.push(childID);
+						childrenExist = true;
+					}
+				}
+
+				if(!childrenExist)
+					_storeEdgeIsPotentiallySilhouette(node, edgeID);
 			}
+			else
+				_storeEdgeIsPotentiallySilhouette(node, edgeID);
 		}
 	}
 }
@@ -95,7 +101,7 @@ void OctreeVisitor::_storeEdgeIsPotentiallySilhouette(unsigned int nodeID, unsig
 	node->edgesMayCast.insert(edgeID);
 }
 
-void OctreeVisitor::_postprocessEdges()
+void OctreeVisitor::_propagatePotentiallySilhouettheEdgesUp()
 {
 	const auto maxDepth = _octree->getMaxRecursionLevel();
 	const unsigned int startingNode = _octree->getNumCellsInPreviousLevels(maxDepth);
@@ -110,4 +116,22 @@ void OctreeVisitor::_postprocessEdges()
 			
 		}
 	}
+}
+
+
+//TODO - co ak ani jedna z nod neexistuje? Co vratit?
+bool OctreeVisitor::_haveAllSyblingsEdgeAsPotential(unsigned int startingNodeID, unsigned int edgeID) const
+{	
+	for(unsigned int i=0; i<OCTREE_NUM_CHILDREN; ++i)
+	{
+		const auto node = _octree->getNode(startingNodeID + i);
+		
+		if (!node)
+			continue;
+
+		if (node->edgesMayCast.find(edgeID) == node->edgesMayCast.end())
+			return false;
+	}
+
+	return true;
 }

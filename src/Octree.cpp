@@ -59,7 +59,7 @@ Node* Octree::getNode(unsigned int nodeID)
 
 AABB Octree::getNodeVolume(unsigned int nodeID) const
 {
-	assert(_nodeExists(nodeID));
+	assert(nodeExists(nodeID));
 	
 	auto iter = _nodes.find(nodeID);
 
@@ -123,7 +123,7 @@ int Octree::getLowestLevelCellIndexFromPointInSpace(const glm::vec3& point)
 	{
 		const int startingChild = getChildrenStartingId(currentNode);
 
-		if (!_nodeExists(startingChild))
+		if (!nodeExists(startingChild))
 			break;
 
 		const int childIndex = _getCorrespondingChildIndexFromPoint(currentNode, point);
@@ -143,7 +143,7 @@ int Octree::_getCorrespondingChildIndexFromPoint(unsigned int nodeID, const glm:
 	return r;
 }
 
-bool Octree::_nodeExists(unsigned int nodeID) const
+bool Octree::nodeExists(unsigned int nodeID) const
 {
 	return (nodeID<getNumCellsInPreviousLevels(_maxRecursionDepth)) && (_nodes.find(nodeID) != _nodes.end());
 }

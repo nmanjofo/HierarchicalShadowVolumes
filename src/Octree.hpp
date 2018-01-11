@@ -43,6 +43,7 @@ public:
 	void splitNode(unsigned int nodeID);
 
 	Node* getNode(unsigned int nodeID);
+	bool nodeExists(unsigned int nodeID) const;
 
 	unsigned int getNumCellsInPreviousLevels(int level) const;
 	unsigned int getMaxRecursionLevel() const;
@@ -56,7 +57,6 @@ private:
 	void _createChild(const AABB& parentSpace, unsigned int childID, unsigned int indexWithinParent);
 	int _getCorrespondingChildIndexFromPoint(unsigned int nodeID, const glm::vec3& point) const;
 	bool _isPointInsideOctree(const glm::vec3& point) const;
-	bool _nodeExists(unsigned int nodeID) const;
 
 	std::map<unsigned int, Node> _nodes;
 	std::map<unsigned int, std::vector<unsigned int> > _edgesInNode;
