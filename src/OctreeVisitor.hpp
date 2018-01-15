@@ -20,9 +20,18 @@ private:
 	void _unmarkEdgeAsPotentiallySilhouetteFromNodeUp(unsigned int edgeID, unsigned int nodeID);
 	void _removePotentiallySilhouetteEdgeFromNode(unsigned int edgeID, unsigned int nodeID);
 	
+	int	 _getFirstNodeIdInLevel(unsigned int level) const;
+
 	void _propagatePotentiallySilhouettheEdgesUp();
-		bool _haveAllSyblingsEdgeAsPotential(unsigned int startingNodeID, unsigned int edgeID) const;
-		void _processLevel();
+		enum class TestResult
+		{
+			TRUE,
+			FALSE,
+			NON_EXISTING
+		};
+
+		TestResult _haveAllSyblingsEdgeAsPotential(unsigned int startingNodeID, unsigned int edgeID) const;
+		void _processPotentialEdgesInLevel(unsigned int levelNum);
 
 	std::shared_ptr<Octree> _octree;
 

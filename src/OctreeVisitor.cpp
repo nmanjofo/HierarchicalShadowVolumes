@@ -119,9 +119,10 @@ void OctreeVisitor::_propagatePotentiallySilhouettheEdgesUp()
 }
 
 
-//TODO - co ak ani jedna z nod neexistuje? Co vratit?
-bool OctreeVisitor::_haveAllSyblingsEdgeAsPotential(unsigned int startingNodeID, unsigned int edgeID) const
+OctreeVisitor::TestResult OctreeVisitor::_haveAllSyblingsEdgeAsPotential(unsigned int startingNodeID, unsigned int edgeID) const
 {	
+	TestResult retval = TestResult::NON_EXISTING;
+	
 	for(unsigned int i=0; i<OCTREE_NUM_CHILDREN; ++i)
 	{
 		const auto node = _octree->getNode(startingNodeID + i);
@@ -130,8 +131,32 @@ bool OctreeVisitor::_haveAllSyblingsEdgeAsPotential(unsigned int startingNodeID,
 			continue;
 
 		if (node->edgesMayCast.find(edgeID) == node->edgesMayCast.end())
-			return false;
+			return TestResult::FALSE;
+		
+		retval = TestResult::TRUE;
 	}
 
-	return true;
+	return retval;
 }
+
+void OctreeVisitor::_processPotentialEdgesInLevel(unsigned int levelNum)
+{
+	const int startingID = _getFirstNodeIdInLevel(levelNum);
+	
+	assert(startingID >= 0);
+
+	const unsigned int stopId = ipow(OCTREE_NUM_CHILDREN, levelNum) + startingID;
+
+	unsigned int currentID = startingID;
+
+	while(currentID<stopId)
+	{
+			
+	}
+}
+
+int	OctreeVisitor::_getFirstNodeIdInLevel(unsigned int level) const
+{
+	
+}
+
