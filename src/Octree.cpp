@@ -16,25 +16,25 @@ int ipow(int base, int exp)
 	return result;
 }
 
-Octree::Octree(unsigned int maxRecursionDepth, const AABB& volume)
+Octree::Octree(unsigned int deepestLevel, const AABB& volume)
 {
-	_maxRecursionDepth = maxRecursionDepth;
+	_deepestLevel = deepestLevel;
 
-	_generateLimits();
+	_generateLevelSizes();
 
 	_init(volume);
 }
 
-void Octree::_generateLimits()
+void Octree::_generateLevelSizes()
 {
-	_levelSizes.clear();
+	_levelSizesInclusiveSum.clear();
 
 	unsigned int prefixSum = 0;
-	//TODO - je tu ozaj "<"?
-	for(unsigned int i=0; i<=_maxRecursionDepth; ++i)
+
+	for(unsigned int i=0; i<= _deepestLevel; ++i)
 	{
-		const unsigned int levelSize = ipow(8, i);
-		_levelSizes.push_back(levelSize + prefixSum);
+		const unsigned int levelSize = ipow(OCTREE_NUM_CHILDREN, i);
+		_levelSizesInclusiveSum.push_back(levelSize + prefixSum);
 		prefixSum += levelSize;
 	}
 }
@@ -82,13 +82,13 @@ int Octree::getNodeParent(unsigned int nodeID) const
 
 	const int parentRelativeID = idInLevel / OCTREE_NUM_CHILDREN;
 
-	return parentRelativeID + getNumCellsInPreviousLevels(nodeLevel - 2);
+	return parentRelativeID + getNumCellsInPreviousLevels(nodeLevel - 1);
 }
 
 int Octree::getNodeRecursionLevel(unsigned int nodeID) const
 {
 	int level = 0;
-	for(auto size : _levelSizes)
+	for(auto size : _levelSizesInclusiveSum)
 	{
 		if (nodeID < size)
 			return level;
@@ -108,7 +108,7 @@ int Octree::getNodeIdInLevel(unsigned int nodeID) const
 
 int Octree::getNodeIdInLevel(unsigned int nodeID, unsigned int level) const
 {
-	return nodeID - getNumCellsInPreviousLevels(level - 1);
+	return nodeID - getNumCellsInPreviousLevels(level);
 }
 
 int Octree::getLowestLevelCellIndexFromPointInSpace(const glm::vec3& point)
@@ -116,10 +116,10 @@ int Octree::getLowestLevelCellIndexFromPointInSpace(const glm::vec3& point)
 	if (!_isPointInsideOctree(point))
 		return -1;
 
-	unsigned int recursionLevel = 0;
+	unsigned int currentLevel = 0;
 	unsigned int currentNode = 0;
 	
-	while(recursionLevel<=_maxRecursionDepth)
+	while(currentLevel <= _deepestLevel)
 	{
 		const int startingChild = getChildrenStartingId(currentNode);
 
@@ -129,7 +129,7 @@ int Octree::getLowestLevelCellIndexFromPointInSpace(const glm::vec3& point)
 		const int childIndex = _getCorrespondingChildIndexFromPoint(currentNode, point);
 
 		currentNode = startingChild + childIndex;
-		++recursionLevel;
+		++currentLevel;
 	}
 
 	return currentNode;
@@ -145,7 +145,7 @@ int Octree::_getCorrespondingChildIndexFromPoint(unsigned int nodeID, const glm:
 
 bool Octree::nodeExists(unsigned int nodeID) const
 {
-	return (nodeID<getNumCellsInPreviousLevels(_maxRecursionDepth)) && (_nodes.find(nodeID) != _nodes.end());
+	return (nodeID<getTotalNumNodes()) && (_nodes.find(nodeID) != _nodes.end());
 }
 
 void Octree::splitNode(unsigned int nodeID)
@@ -158,27 +158,44 @@ void Octree::splitNode(unsigned int nodeID)
 		_createChild(nodeVolume, startingIndex + i, i);
 }
 
+void Octree::deleteNodeSubtree(unsigned nodeID)
+{
+	_nodes.erase(nodeID);
+
+	const int level = getNodeRecursionLevel(nodeID);
+
+	if(level!=_deepestLevel)
+	{
+		const unsigned int startingChild = getChildrenStartingId(nodeID);
+
+		for (unsigned int i = startingChild; i < (startingChild + OCTREE_NUM_CHILDREN); ++i)
+			deleteNodeSubtree(i);
+	}
+}
+
 unsigned int Octree::getNumCellsInPreviousLevels(int level) const
 {
-	assert(level < int(_levelSizes.size()));
+	const int l = level - 1;
 
-	if (level < 0 || level> _maxRecursionDepth)
+	assert(l < int(_levelSizesInclusiveSum.size()));
+
+	if (l < 0 || l> _deepestLevel)
 		return 0;
 
-	return _levelSizes[level];
+	return _levelSizesInclusiveSum[l];
 }
 
 int Octree::getChildrenStartingId(unsigned int nodeID) const
 {
 	const int nodeLevel = getNodeRecursionLevel(nodeID);
 
-	assert(nodeLevel >= 0);
+	assert((nodeLevel >= 0) && nodeLevel<=_deepestLevel);
 
 	const int idInLevel = getNodeIdInLevel(nodeID, nodeLevel);
 
 	assert(idInLevel >= 0);
 
-	return OCTREE_NUM_CHILDREN*idInLevel + getNumCellsInPreviousLevels(nodeLevel);
+	return OCTREE_NUM_CHILDREN*idInLevel + _levelSizesInclusiveSum[nodeLevel];
 }
 
 void Octree::_createChild(const AABB& parentSpace, unsigned int newNodeId, unsigned int indexWithinParent)
@@ -234,7 +251,12 @@ bool Octree::_isPointInsideOctree(const glm::vec3& point) const
 	return GeometryOps::testAabbPointIsInsideOrOn(iter->second.volume, point);
 }
 
-unsigned int Octree::getMaxRecursionLevel() const
+unsigned int Octree::getDeepestLevel() const
 {
-	return _maxRecursionDepth;
+	return _deepestLevel;
+}
+
+unsigned int Octree::getTotalNumNodes() const
+{
+	return _levelSizesInclusiveSum[_deepestLevel];
 }

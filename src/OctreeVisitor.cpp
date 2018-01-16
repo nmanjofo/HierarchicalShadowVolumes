@@ -24,6 +24,9 @@ void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4> >& edge
 		int node = nodeStack.top();
 		nodeStack.pop();
 
+		if (!_octree->nodeExists(node))
+			_octree->splitNode(_octree->getNodeParent(node));
+
 		EdgeSilhouetness testResult = GeometryOps::testEdgeSpaceAabb(p1, p2, edgeInfo, _octree->getNodeVolume(0));
 
 		if (EDGE_IS_SILHOUETTE(testResult))
@@ -71,27 +74,6 @@ void OctreeVisitor::_storeEdgeIsAlwaysSilhouette(EdgeSilhouetness testResult, un
 		node->edgesAlwaysCast.insert(-int(edgeID));
 }
 
-void OctreeVisitor::_unmarkEdgeAsPotentiallySilhouetteFromNodeUp(unsigned int edgeID, unsigned int nodeID)
-{
-	int currentNode = nodeID;
-
-	do
-	{
-		_removePotentiallySilhouetteEdgeFromNode(edgeID, currentNode);
-		currentNode = _octree->getNodeParent(currentNode);
-
-	} while (nodeID >= 0);
-}
-
-void OctreeVisitor::_removePotentiallySilhouetteEdgeFromNode(unsigned int edgeID, unsigned int nodeID)
-{
-	auto node = _octree->getNode(nodeID);
-
-	assert(node != nullptr);
-
-	node->edgesMayCast.erase(node->edgesMayCast.find(edgeID));
-}
-
 void OctreeVisitor::_storeEdgeIsPotentiallySilhouette(unsigned int nodeID, unsigned int edgeID)
 {
 	auto node = _octree->getNode(nodeID);
@@ -103,19 +85,10 @@ void OctreeVisitor::_storeEdgeIsPotentiallySilhouette(unsigned int nodeID, unsig
 
 void OctreeVisitor::_propagatePotentiallySilhouettheEdgesUp()
 {
-	const auto maxDepth = _octree->getMaxRecursionLevel();
-	const unsigned int startingNode = _octree->getNumCellsInPreviousLevels(maxDepth);
-	const unsigned int endNode = startingNode + ipow(OCTREE_NUM_CHILDREN, maxDepth);
+	const unsigned int maxLevel = _octree->getDeepestLevel();
 
-	for(unsigned int i = startingNode; i<endNode; ++i)
-	{
-		const auto node = _octree->getNode(i);
-
-		if(node)
-		{
-			
-		}
-	}
+	for(unsigned int i = maxLevel; i>0; --i)
+		_processPotentialEdgesInLevel(i);
 }
 
 
@@ -139,24 +112,74 @@ OctreeVisitor::TestResult OctreeVisitor::_haveAllSyblingsEdgeAsPotential(unsigne
 	return retval;
 }
 
-void OctreeVisitor::_processPotentialEdgesInLevel(unsigned int levelNum)
+void OctreeVisitor::_processPotentialEdgesInLevel(unsigned int level)
 {
-	const int startingID = _getFirstNodeIdInLevel(levelNum);
+	assert(level > 0);
+	const int startingID = _getFirstNodeIdInLevel(level);
 	
 	assert(startingID >= 0);
 
-	const unsigned int stopId = ipow(OCTREE_NUM_CHILDREN, levelNum) + startingID;
+	const unsigned int stopId = ipow(OCTREE_NUM_CHILDREN, level) + startingID;
 
 	unsigned int currentID = startingID;
 
 	while(currentID<stopId)
 	{
-			
+		std::set<unsigned int> potentialEdgesSyblings;
+		_getAllPotentialEdgesSyblings(currentID, potentialEdgesSyblings);
+
+		for(auto edge : potentialEdgesSyblings)
+		{
+			auto result = _haveAllSyblingsEdgeAsPotential(currentID, edge);
+
+			if(result==TestResult::TRUE)
+				_assignPotentialEdgeToNodeParent(currentID, edge);
+		}
+
+		currentID += OCTREE_NUM_CHILDREN;
 	}
 }
 
 int	OctreeVisitor::_getFirstNodeIdInLevel(unsigned int level) const
 {
-	
+	return _octree->getNumCellsInPreviousLevels(level);
 }
 
+void OctreeVisitor::_getAllPotentialEdgesSyblings(unsigned int startingID, std::set<unsigned int>& edges) const
+{
+	for(unsigned int i=0; i<OCTREE_NUM_CHILDREN; ++i)
+	{
+		const auto node = _octree->getNode(startingID + i);
+
+		if(node!=nullptr)
+		{
+			edges.insert(node->edgesMayCast.begin(), node->edgesMayCast.end());
+		}
+	}
+}
+
+void OctreeVisitor::_assignPotentialEdgeToNodeParent(unsigned int node, unsigned int edge)
+{
+	const int parent = _octree->getNodeParent(node);
+
+	assert(parent >= 0);
+
+	auto n = _octree->getNode(parent);
+
+	if (n)
+		n->edgesMayCast.insert(edge);
+}
+
+void OctreeVisitor::cleanEmptyNodes()
+{
+	const int startingID = _getFirstNodeIdInLevel(_octree->getDeepestLevel());
+	const int bottomLevelSize = ipow(OCTREE_NUM_CHILDREN, _octree->getDeepestLevel());
+
+	for(unsigned int i = startingID; i<(startingID + bottomLevelSize); ++i)
+	{
+		auto node = _octree->getNode(i);
+
+		if (node && !node->edgesAlwaysCast.size() && !node->edgesMayCast.size())
+			_octree->deleteNodeSubtree(i);
+	}
+}

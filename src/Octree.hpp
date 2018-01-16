@@ -41,17 +41,19 @@ public:
 	void getEdgeIndicesFromPointInSpace(const glm::vec3& lightPos, std::vector<unsigned int>& edges);
 
 	void splitNode(unsigned int nodeID);
+	void deleteNodeSubtree(unsigned int nodeID);
 
 	Node* getNode(unsigned int nodeID);
 	bool nodeExists(unsigned int nodeID) const;
 
 	unsigned int getNumCellsInPreviousLevels(int level) const;
-	unsigned int getMaxRecursionLevel() const;
+	unsigned int getDeepestLevel() const;
+	unsigned int getTotalNumNodes() const;
 
 private:
-	unsigned int _maxRecursionDepth;
+	unsigned int _deepestLevel;
 
-	void _generateLimits();
+	void _generateLevelSizes();
 	void _init(const AABB& volume);
 
 	void _createChild(const AABB& parentSpace, unsigned int childID, unsigned int indexWithinParent);
@@ -61,5 +63,5 @@ private:
 	std::map<unsigned int, Node> _nodes;
 	std::map<unsigned int, std::vector<unsigned int> > _edgesInNode;
 
-	std::vector<unsigned int> _levelSizes;
+	std::vector<unsigned int> _levelSizesInclusiveSum;
 };
