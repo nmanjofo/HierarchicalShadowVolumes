@@ -39,7 +39,7 @@ public:
     Application();
 
     //Main application function
-    bool Run();
+    bool Run(int argc, char** argv);
 
     //Initializes window and OpenGL
     //Calls initGL function
@@ -49,6 +49,8 @@ public:
     //Stores all data in "scene" object
     //Scene = all the meshes from single file
     bool addModelFileToScene(const char* path, std::shared_ptr<Scene> scene, const glm::mat4& transform = glm::mat4(1));
+
+	bool loadSceneFiles(int numModels, char** paths);
 
     //Setup camera for scene
     void setupCamera(OrbitalCamera& orbitalCamera);

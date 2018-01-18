@@ -148,6 +148,16 @@ bool Octree::nodeExists(unsigned int nodeID) const
 	return (nodeID<getTotalNumNodes()) && (_nodes.find(nodeID) != _nodes.end());
 }
 
+bool Octree::childrenExist(unsigned int nodeID) const
+{
+	int startID = getChildrenStartingId(nodeID);
+
+	if (startID < 0)
+		return false;
+
+	return nodeExists(startID);
+}
+
 void Octree::splitNode(unsigned int nodeID)
 {
 	AABB nodeVolume = getNodeVolume(nodeID);
@@ -156,6 +166,11 @@ void Octree::splitNode(unsigned int nodeID)
 
 	for(unsigned int i=0; i<OCTREE_NUM_CHILDREN; ++i)
 		_createChild(nodeVolume, startingIndex + i, i);
+}
+
+void Octree::deleteNode(unsigned int nodeID)
+{
+	_nodes.erase(nodeID);
 }
 
 void Octree::deleteNodeSubtree(unsigned nodeID)
@@ -179,7 +194,7 @@ unsigned int Octree::getNumCellsInPreviousLevels(int level) const
 
 	assert(l < int(_levelSizesInclusiveSum.size()));
 
-	if (l < 0 || l> _deepestLevel)
+	if (l < 0 || l> (int)_deepestLevel)
 		return 0;
 
 	return _levelSizesInclusiveSum[l];
@@ -189,7 +204,10 @@ int Octree::getChildrenStartingId(unsigned int nodeID) const
 {
 	const int nodeLevel = getNodeRecursionLevel(nodeID);
 
-	assert((nodeLevel >= 0) && nodeLevel<=_deepestLevel);
+	if (nodeLevel == _deepestLevel)
+		return -1;
+
+	assert((nodeLevel >= 0) && nodeLevel<=(int)_deepestLevel);
 
 	const int idInLevel = getNodeIdInLevel(nodeID, nodeLevel);
 

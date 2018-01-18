@@ -57,10 +57,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 
 	_updateSides();
 
-	AABB space;
-	space.setMinMaxPoints(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));
-	_octree = std::make_shared<Octree>(3, space);
-	_testOctree();
+	_initOctree();
 
 	return true;
 }
@@ -71,6 +68,38 @@ void HierarchicalSilhouetteRenderer::_initGL(unsigned int screenWidth, unsigned 
 
 	glViewport(0, 0, screenWidth, screenHeight);
 	glClearColor(1, 1, 1, 1);
+}
+
+void HierarchicalSilhouetteRenderer::_initOctree()
+{
+	AABB space;
+	space.setMinMaxPoints(glm::vec3(-100, -100, -100), glm::vec3(100, 100, 100));
+	
+	_octree = std::make_shared<Octree>(4, space);
+	_octreeVisitor = std::make_shared<OctreeVisitor>(_octree);
+
+	_loadOctree();
+
+	_processOctree();
+
+	_testOctree();
+}
+
+
+void HierarchicalSilhouetteRenderer::_loadOctree()
+{
+	unsigned int i = 0;
+	for (const auto edge : _edges)
+	{
+		_octreeVisitor->addEdge(edge, i);
+		++i;
+	}
+}
+
+void HierarchicalSilhouetteRenderer::_processOctree()
+{
+	_octreeVisitor->processPotentialEdges();
+	_octreeVisitor->cleanEmptyNodes();
 }
 
 void HierarchicalSilhouetteRenderer::onUpdate(float timeSinceLastUpdateMs)
@@ -317,7 +346,7 @@ void HierarchicalSilhouetteRenderer::_initVoxelization()
 {
 	AABB space;
 	space.setMinMaxPoints(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));
-	_scene->lightSpace.init(space, 5, 5, 5);
+	_scene->lightSpace.init(space, 10, 10, 10);
 	//_scene->lightSpace.init(space, 2, 2, 2);
 }
 
@@ -353,5 +382,4 @@ void HierarchicalSilhouetteRenderer::_testOctree()
 
 	a = _octree->getLowestLevelCellIndexFromPointInSpace(glm::vec3(5, 8, 2));
 	bb = _octree->getNodeVolume(a);
-
 }

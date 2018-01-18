@@ -13,6 +13,18 @@ void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4> >& edge
 {
 	Plane p1, p2;
 
+	const auto sz = edgeInfo.second.size();
+
+	assert(sz <= 2);
+
+	if (sz == 0)
+		return;
+	if(sz==1)
+	{
+		_storeEdgeIsPotentiallySilhouette(0, edgeID);
+		return;
+	}
+
 	GeometryOps::buildEdgeTrianglePlane(edgeInfo.first, edgeInfo.second[0], p1);
 	GeometryOps::buildEdgeTrianglePlane(edgeInfo.first, edgeInfo.second[1], p2);
 
@@ -39,21 +51,8 @@ void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4> >& edge
 
 			if (childrenStart >= 0)
 			{
-				bool childrenExist = false;
-
 				for (int i = 0; i < OCTREE_NUM_CHILDREN; ++i)
-				{
-					const unsigned int childID = childrenStart + i;
-
-					if(_octree->nodeExists(childID))
-					{
-						nodeStack.push(childID);
-						childrenExist = true;
-					}
-				}
-
-				if(!childrenExist)
-					_storeEdgeIsPotentiallySilhouette(node, edgeID);
+					nodeStack.push(childrenStart + i);
 			}
 			else
 				_storeEdgeIsPotentiallySilhouette(node, edgeID);
@@ -81,6 +80,11 @@ void OctreeVisitor::_storeEdgeIsPotentiallySilhouette(unsigned int nodeID, unsig
 	assert(node != nullptr);
 
 	node->edgesMayCast.insert(edgeID);
+}
+
+void OctreeVisitor::processPotentialEdges()
+{
+	_propagatePotentiallySilhouettheEdgesUp();
 }
 
 void OctreeVisitor::_propagatePotentiallySilhouettheEdgesUp()
@@ -132,8 +136,11 @@ void OctreeVisitor::_processPotentialEdgesInLevel(unsigned int level)
 		{
 			auto result = _haveAllSyblingsEdgeAsPotential(currentID, edge);
 
-			if(result==TestResult::TRUE)
+			if (result == TestResult::TRUE)
+			{
 				_assignPotentialEdgeToNodeParent(currentID, edge);
+				_removePotentialEdgeFromSyblings(currentID, edge);
+			}
 		}
 
 		currentID += OCTREE_NUM_CHILDREN;
@@ -152,9 +159,18 @@ void OctreeVisitor::_getAllPotentialEdgesSyblings(unsigned int startingID, std::
 		const auto node = _octree->getNode(startingID + i);
 
 		if(node!=nullptr)
-		{
 			edges.insert(node->edgesMayCast.begin(), node->edgesMayCast.end());
-		}
+	}
+}
+
+void OctreeVisitor::_removePotentialEdgeFromSyblings(unsigned int startingID, unsigned int edge)
+{
+	for(unsigned int i=0; i<OCTREE_NUM_CHILDREN; ++i)
+	{
+		auto node = _octree->getNode(startingID + i);
+
+		if(node)
+			node->edgesMayCast.erase(edge);
 	}
 }
 
@@ -172,14 +188,67 @@ void OctreeVisitor::_assignPotentialEdgeToNodeParent(unsigned int node, unsigned
 
 void OctreeVisitor::cleanEmptyNodes()
 {
-	const int startingID = _getFirstNodeIdInLevel(_octree->getDeepestLevel());
+	/*const int startingID = _getFirstNodeIdInLevel(_octree->getDeepestLevel());
 	const int bottomLevelSize = ipow(OCTREE_NUM_CHILDREN, _octree->getDeepestLevel());
 
-	for(unsigned int i = startingID; i<(startingID + bottomLevelSize); ++i)
+	for(int i = startingID; i<(startingID + bottomLevelSize); ++i)
 	{
 		auto node = _octree->getNode(i);
 
 		if (node && !node->edgesAlwaysCast.size() && !node->edgesMayCast.size())
 			_octree->deleteNodeSubtree(i);
+	}*/
+
+	for(unsigned int level = _octree->getDeepestLevel(); level>0; --level)
+	{
+		_processEmptyNodesInLevel(level);
+	}
+}
+
+void OctreeVisitor::_processEmptyNodesInLevel(unsigned int level)
+{
+	assert(level > 0);
+	const int startingID = _getFirstNodeIdInLevel(level);
+
+	assert(startingID >= 0);
+
+	const unsigned int stopId = ipow(OCTREE_NUM_CHILDREN, level) + startingID;
+
+	unsigned int currentID = startingID;
+
+	const unsigned int deepestLevel = _octree->getDeepestLevel();
+
+	while (currentID < stopId)
+	{
+		_processEmptyNodesSyblingsParent(currentID);
+
+		currentID += OCTREE_NUM_CHILDREN;
+	}
+}
+
+void OctreeVisitor::_processEmptyNodesSyblingsParent(unsigned int first)
+{
+	unsigned int numRemoved = 0;
+	
+	for(unsigned int i=0; i<OCTREE_NUM_CHILDREN; ++i)
+	{
+		auto node = _octree->getNode(first + i);
+
+		if(node && !node->edgesMayCast.size() && !node->edgesAlwaysCast.size())
+		{
+			_octree->deleteNode(first + i);
+			++numRemoved;
+		}
+		else
+			++numRemoved;
+	}
+
+	if(numRemoved==OCTREE_NUM_CHILDREN)
+	{
+		const int parentID = _octree->getNodeParent(first);
+		auto parent = _octree->getNode(parentID);
+
+		if (parent && !parent->edgesMayCast.size() && !parent->edgesAlwaysCast.size())
+			_octree->deleteNode(parentID);
 	}
 }

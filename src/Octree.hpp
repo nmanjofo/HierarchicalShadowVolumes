@@ -41,10 +41,12 @@ public:
 	void getEdgeIndicesFromPointInSpace(const glm::vec3& lightPos, std::vector<unsigned int>& edges);
 
 	void splitNode(unsigned int nodeID);
+	void deleteNode(unsigned int nodeID);
 	void deleteNodeSubtree(unsigned int nodeID);
 
 	Node* getNode(unsigned int nodeID);
 	bool nodeExists(unsigned int nodeID) const;
+	bool childrenExist(unsigned int nodeID) const;
 
 	unsigned int getNumCellsInPreviousLevels(int level) const;
 	unsigned int getDeepestLevel() const;

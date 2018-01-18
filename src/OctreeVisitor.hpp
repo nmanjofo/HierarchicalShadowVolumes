@@ -36,6 +36,10 @@ private:
 		void _processPotentialEdgesInLevel(unsigned int levelNum);
 		void _getAllPotentialEdgesSyblings(unsigned int startingID, std::set<unsigned int>& edges) const;
 		void _assignPotentialEdgeToNodeParent(unsigned int node, unsigned int edge);
+		void _removePotentialEdgeFromSyblings(unsigned int startingID, unsigned int edge);
+
+	void _processEmptyNodesInLevel(unsigned int level);
+		void _processEmptyNodesSyblingsParent(unsigned int first);
 
 
 	std::shared_ptr<Octree> _octree;

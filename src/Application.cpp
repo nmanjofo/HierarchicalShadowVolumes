@@ -120,6 +120,26 @@ void Application::setupCamera(FreelookCamera& camera)
     camera.setupCameraProjection(0.1f, 2*(d + r), aspectRatio, fovyDeg);
     camera.positionCamera(glm::vec3(0, 0, - 1*(d)), glm::vec3(0));
 }
+
+bool Application::loadSceneFiles(int numModels, char** paths)
+{
+	if (numModels == 0)
+	{
+		std::cerr << "No model file speciffied!\n";
+		return false;
+	}
+	for(int i = 0; i<numModels; ++i)
+	{
+		if (!addModelFileToScene(paths[i], _scene))
+		{
+			std::cerr << "Failed to load scene: " << std::string(paths[i]) << std::endl;
+			return false;
+		}
+	}
+
+	return true;
+}
+
 bool Application::addModelFileToScene(const char* fileToLoad, std::shared_ptr<Scene> scene, const glm::mat4& transform)
 {
     std::unique_ptr<SceneLoader> sl = std::unique_ptr<SceneLoader>(new SceneLoader);
@@ -144,19 +164,13 @@ void Application::_splitPathToFilenameAndDirectory(const std::string& path, std:
 	fileName = path.substr(found + 1);
 }
 
-bool Application::Run()
+bool Application::Run(int argc, char** argv)
 {
     if(!Init())
         return false;
 
-    //Enter Your model path HERE
-	//const char* model = "models\\cutCube.obj";
-	const char* model = "models\\cutCube.obj";
-	if (!addModelFileToScene(model, _scene))
-	{
-		std::cerr << "Failed to load scene: " << std::string(model) << std::endl;
+	if (!loadSceneFiles(argc - 1, argv + 1))
 		return false;
-	}
 
     setupCamera(_camera);
 

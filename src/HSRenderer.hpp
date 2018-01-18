@@ -14,6 +14,7 @@
 #include "OGLScene.hpp"
 #include "GLProgram.hpp"
 #include "Octree.hpp"
+#include "OctreeVisitor.hpp"
 
 class HierarchicalSilhouetteRenderer
 {
@@ -27,15 +28,8 @@ public:
 	void clear();
 
 private:
-	std::shared_ptr<Scene> _scene;
-
-	std::map<Edge, std::vector<glm::vec4> > _edges;
-	std::vector<MultiBitArray> _edgeBitmasks;
-	std::vector<Triangle> _pretransformedTriangles;
-
-	std::vector<glm::vec4> _sides;
-
 	void _initVoxelization();
+	void _initOctree();
 
 	//Edge generation
 	void _generateScenePretransformedGeometry();
@@ -66,7 +60,10 @@ private:
 	void _initGL(unsigned int screenWidth, unsigned int screenHeight);
 	bool _loadShaders();
 
+	void _loadOctree();
+	void _processOctree();
 	void _testOctree();
+	
 
 	GLuint _sidesVBO;
 	GLuint _sidesVAO;
@@ -79,5 +76,14 @@ private:
 
 	OGLScene	   _oglScene;
 
+	std::shared_ptr<Scene> _scene;
+
+	std::map<Edge, std::vector<glm::vec4> > _edges;
+	std::vector<MultiBitArray> _edgeBitmasks;
+	std::vector<Triangle> _pretransformedTriangles;
+
+	std::vector<glm::vec4> _sides;
+
 	std::shared_ptr<Octree>	_octree;
+	std::shared_ptr<OctreeVisitor> _octreeVisitor;
 };
