@@ -73,12 +73,14 @@ void HierarchicalSilhouetteRenderer::_initGL(unsigned int screenWidth, unsigned 
 void HierarchicalSilhouetteRenderer::_initOctree()
 {
 	AABB space;
-	space.setMinMaxPoints(glm::vec3(-100, -100, -100), glm::vec3(100, 100, 100));
+	space.setMinMaxPoints(glm::vec3(-50, -50, -50), glm::vec3(50, 50, 50));
 	
 	_octree = std::make_shared<Octree>(4, space);
 	_octreeVisitor = std::make_shared<OctreeVisitor>(_octree);
 
 	_loadOctree();
+
+	const auto sz = _octree->getOctreeSizeBytes();
 
 	_processOctree();
 

@@ -39,12 +39,10 @@ void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4> >& edge
 		if (!_octree->nodeExists(node))
 			_octree->splitNode(_octree->getNodeParent(node));
 
-		EdgeSilhouetness testResult = GeometryOps::testEdgeSpaceAabb(p1, p2, edgeInfo, _octree->getNodeVolume(0));
+		EdgeSilhouetness testResult = GeometryOps::testEdgeSpaceAabb(p1, p2, edgeInfo, _octree->getNodeVolume(node));
 
 		if (EDGE_IS_SILHOUETTE(testResult))
-		{
 			_storeEdgeIsAlwaysSilhouette(testResult, node, edgeID);
-		}
 		else if (testResult == EdgeSilhouetness::EDGE_POTENTIALLY_SILHOUETTE)
 		{
 			const int childrenStart = _octree->getChildrenStartingId(node);

@@ -278,3 +278,22 @@ unsigned int Octree::getTotalNumNodes() const
 {
 	return _levelSizesInclusiveSum[_deepestLevel];
 }
+
+
+unsigned int Octree::getOctreeSizeBytes() const
+{
+	unsigned int sz = 0;
+
+	sz += _nodes.size() * sizeof(AABB);
+
+	unsigned int numIndices = 0;
+	for(const auto node : _nodes)
+	{
+		numIndices += node.second.edgesAlwaysCast.size();
+		numIndices += node.second.edgesMayCast.size();
+	}
+
+	sz += sizeof(unsigned int) * numIndices;
+
+	return sz;
+}
