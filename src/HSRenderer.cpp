@@ -8,6 +8,7 @@
 #include "MultiBitArray.hpp"
 #include "EdgeExtractor.hpp"
 #include "GeometryOperations.hpp"
+#include "HighResolutionTimer.hpp"
 
 HierarchicalSilhouetteRenderer::HierarchicalSilhouetteRenderer()
 {
@@ -31,6 +32,9 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 
 	EdgeExtractor extractor;
 	extractor.extractEdgesFromTriangles(_pretransformedTriangles, _edges);
+
+	std::cout << "Scene has " << _pretransformedTriangles.size() * 3 << " triangles\n";
+	std::cout << "Scene has " << _edges.size() << " edges\n";
 
 	_generatePerEdgeVoxelInfo(_scene->lightSpace);
 
@@ -75,16 +79,25 @@ void HierarchicalSilhouetteRenderer::_initOctree()
 	AABB space;
 	space.setMinMaxPoints(glm::vec3(-50, -50, -50), glm::vec3(50, 50, 50));
 	
-	_octree = std::make_shared<Octree>(4, space);
+	_octree = std::make_shared<Octree>(5, space);
 	_octreeVisitor = std::make_shared<OctreeVisitor>(_octree);
+
+	HighResolutionTimer tmr;
+	tmr.reset();
 
 	_loadOctree();
 
-	const auto sz = _octree->getOctreeSizeBytes();
+	const auto buildTime = tmr.getElapsedTimeMilliseconds();
+
+	const float sz = _octree->getOctreeSizeBytes()/1024.0f/1024.0f;
 
 	_processOctree();
 
-	_testOctree();
+	const auto processTime = tmr.getElapsedTimeFromLastQueryMilliseconds();
+
+	std::cout << "Time to build: " << buildTime << "ms\nTime to postprocess: " << processTime << "ms" << std::endl;
+	std::cout << "Unprocessed size " << sz << "MB, processed: " << _octree->getOctreeSizeBytes() / 1024.0f / 1024.0f << "MB" << std::endl;
+	//_testOctree();
 }
 
 
@@ -146,8 +159,6 @@ void HierarchicalSilhouetteRenderer::_generateScenePretransformedGeometry()
 			_tranformVertex(mesh.vertices[i+2], mesh.modelMatrix, _pretransformedTriangles[triangleIndex].v3);
 		}
 	}
-
-	std::cout << "Scene has " << _pretransformedTriangles.size() * 3 << " triangles\n";
 }
 
 void HierarchicalSilhouetteRenderer::_tranformVertex(const glm::vec4& vertex, const glm::mat4& modelMatrix, glm::vec4& transformedVertex) const

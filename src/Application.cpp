@@ -135,6 +135,8 @@ bool Application::loadSceneFiles(int numModels, char** paths)
 			std::cerr << "Failed to load scene: " << std::string(paths[i]) << std::endl;
 			return false;
 		}
+		else
+			std::cout << "Scene " << paths[i] << " successfully loaded\n";
 	}
 
 	return true;

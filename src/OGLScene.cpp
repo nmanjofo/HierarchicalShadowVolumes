@@ -144,15 +144,20 @@ void OGLScene::_loadMeshesMatrices(const std::vector<Mesh>& meshes)
 	normals.reserve(numVertices);
 	tcoords.reserve(numVertices);
 
-	matrices.resize(2 * 16  * meshes.size());
+	const unsigned int numMatricesPerMesh = 2;
+	const unsigned int numFloatsPerMatrix = 16;
+	const unsigned int numFloatsPerMesh = numMatricesPerMesh * numFloatsPerMatrix;
+	const unsigned int matricesNumFloats = numFloatsPerMesh * meshes.size();
+	
+	matrices.resize(matricesNumFloats);
 
 	unsigned int meshID = 0;
 	for (const auto& mesh : meshes)
 	{
 		_appendTexcoords(mesh.texcoords, tcoords);
 
-		memcpy(&matrices[2 * 16 * meshID + 0], glm::value_ptr(mesh.modelMatrix), 16 * sizeof(float));
-		memcpy(&matrices[2 * 16 * meshID + 16], glm::value_ptr(inverseTranspose(mesh.modelMatrix)), 16 * sizeof(float));
+		memcpy(&matrices[numFloatsPerMesh * meshID + 0], glm::value_ptr(mesh.modelMatrix), numFloatsPerMatrix * sizeof(float));
+		memcpy(&matrices[numFloatsPerMesh * meshID + numFloatsPerMatrix], glm::value_ptr(inverseTranspose(mesh.modelMatrix)), numFloatsPerMatrix * sizeof(float));
 
 		const auto numMeshVertices = mesh.vertices.size();
 		for (unsigned int i = 0; i < numMeshVertices; ++i)
@@ -170,7 +175,8 @@ void OGLScene::_loadMeshesMatrices(const std::vector<Mesh>& meshes)
 		++meshID;
 	}
 
-	_SSBO_matrices_size = matrices.size() * 16 * sizeof(float);
+	_SSBO_matrices_size = matricesNumFloats * sizeof(float);
+	const auto ptr = matrices.data();
 	_SSBO_matrices = _createGlBuffer(_SSBO_matrices_size, matrices.data());
 
 	_VBO_vertices = _createGlBuffer(vertices.size() * 4 * sizeof(float), vertices.data());
@@ -243,10 +249,13 @@ void OGLScene::_embedUintIntoVectorW(glm::vec4& vector, unsigned int id) const
 
 GLuint OGLScene::_createGlBuffer(GLsizei size, const void* data)
 {
+	assert(glGetError() == GL_NO_ERROR);
+	
 	GLuint buffer;
 	glGenBuffers(1, &buffer);
-	glNamedBufferDataEXT(buffer, size, data, GL_STATIC_DRAW);
-
+	assert(glGetError() == GL_NO_ERROR);
+	glNamedBufferDataEXT(buffer, size, data, GL_STATIC_READ);
+	const auto e = glGetError();
 	return buffer;
 }
 

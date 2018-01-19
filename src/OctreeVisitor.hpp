@@ -11,12 +11,14 @@ public:
 	OctreeVisitor(std::shared_ptr<Octree> octree);
 
 	void addEdge(const std::pair<Edge, std::vector<glm::vec4> >& edgeInfo, int edgeID);
+	void addEdges(const std::map<Edge, std::vector<glm::vec4> >& _edges);
 
 	void processPotentialEdges();
 
 	void cleanEmptyNodes();
 
 private:
+	void _expandWholeOctree();
 	void _storeEdgeIsAlwaysSilhouette(EdgeSilhouetness testResult, unsigned int nodeId, unsigned int edgeID);
 	void _storeEdgeIsPotentiallySilhouette(unsigned int nodeID, unsigned int edgeID);
 	//void _unmarkEdgeAsPotentiallySilhouetteFromNodeUp(unsigned int edgeID, unsigned int nodeID);
@@ -41,6 +43,10 @@ private:
 	void _processEmptyNodesInLevel(unsigned int level);
 		void _processEmptyNodesSyblingsParent(unsigned int first);
 
+
+	void _addEdgesOnLowestLevel(const std::map<Edge, std::vector<glm::vec4> >& _edges);
+		void _addEdgesSyblings(const std::map<Edge, std::vector<glm::vec4> >& _edges, unsigned int startingID);
+	
 
 	std::shared_ptr<Octree> _octree;
 };

@@ -58,6 +58,23 @@ void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4> >& edge
 	}
 }
 
+void OctreeVisitor::addEdges(const std::map<Edge, std::vector<glm::vec4> >& edges)
+{
+	//_expandWholeOctree();
+
+	//_addEdgesOnLowestLevel(edges);
+}
+
+void _addEdgesOnLowestLevel(const std::map<Edge, std::vector<glm::vec4> >& _edges)
+{
+	
+}
+
+void _addEdgesSyblings(const std::map<Edge, std::vector<glm::vec4> >& _edges, unsigned int startingID)
+{
+	
+}
+
 void OctreeVisitor::_storeEdgeIsAlwaysSilhouette(EdgeSilhouetness testResult, unsigned int nodeId, unsigned int edgeID)
 {
 	auto node = _octree->getNode(nodeId);
@@ -250,3 +267,5 @@ void OctreeVisitor::_processEmptyNodesSyblingsParent(unsigned int first)
 			_octree->deleteNode(parentID);
 	}
 }
+
+
