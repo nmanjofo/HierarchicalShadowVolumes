@@ -10,8 +10,8 @@ class OctreeVisitor
 public:
 	OctreeVisitor(std::shared_ptr<Octree> octree);
 
-	void addEdge(const std::pair<Edge, std::vector<glm::vec4> >& edgeInfo, int edgeID);
-	void addEdges(const std::map<Edge, std::vector<glm::vec4> >& _edges);
+	void addEdge(const std::pair<Edge, std::vector<glm::vec4>>& edgeInfo, int edgeID);
+	void addEdges(const std::map<Edge, std::vector<glm::vec4>>& _edges);
 
 	void processPotentialEdges();
 
@@ -43,10 +43,10 @@ private:
 	void _processEmptyNodesInLevel(unsigned int level);
 		void _processEmptyNodesSyblingsParent(unsigned int first);
 
-
-	void _addEdgesOnLowestLevel(const std::map<Edge, std::vector<glm::vec4> >& _edges);
-		void _addEdgesSyblings(const std::map<Edge, std::vector<glm::vec4> >& _edges, unsigned int startingID);
-	
+	void _addEdgesOnLowestLevel(std::vector< std::vector<Plane> >& edgePlanes, const std::map<Edge, std::vector<glm::vec4>>& edges);
+		void _addEdgesSyblingsParent(const std::vector< std::vector<Plane> >& edgePlanes, const std::map<Edge, std::vector<glm::vec4>>& edges, unsigned int startingID);
+		void _generateEdgePlanes(const std::map<Edge, std::vector<glm::vec4>>& edges, std::vector< std::vector<Plane> >& planes) const;
+		bool _doAllSilhouetteFaceTheSame(const int (&indices)[OCTREE_NUM_CHILDREN]) const;
 
 	std::shared_ptr<Octree> _octree;
 };

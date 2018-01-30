@@ -51,7 +51,7 @@ bool GeometryOps::testAabbPointIsInsideOrOn(const AABB& bbox, const glm::vec3& p
 	return isInRange(point.x, minPoint.x, maxPoint.x) & isInRange(point.y, minPoint.y, maxPoint.y) & isInRange(point.z, minPoint.z, maxPoint.z);
 }
 
-EdgeSilhouetness GeometryOps::testEdgeSpaceAabb(const Plane& p1, const Plane& p2, const std::pair<Edge, std::vector<glm::vec4> >& edgeInfo, const AABB& voxel)
+EdgeSilhouetness GeometryOps::testEdgeSpaceAabb(const Plane& p1, const Plane& p2, const std::pair<Edge, std::vector<glm::vec4>>& edgeInfo, const AABB& voxel)
 {
 	auto result1 = testAabbPlane(voxel, p1);
 	auto result2 = testAabbPlane(voxel, p2);

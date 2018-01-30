@@ -9,7 +9,7 @@ OctreeVisitor::OctreeVisitor(std::shared_ptr<Octree> octree)
 	_octree = octree;
 }
 
-void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4> >& edgeInfo, int edgeID)
+void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4>>& edgeInfo, int edgeID)
 {
 	Plane p1, p2;
 
@@ -58,22 +58,125 @@ void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4> >& edge
 	}
 }
 
-void OctreeVisitor::addEdges(const std::map<Edge, std::vector<glm::vec4> >& edges)
+void OctreeVisitor::addEdges(const std::map<Edge, std::vector<glm::vec4>>& edges)
 {
-	//_expandWholeOctree();
+	_expandWholeOctree();
 
-	//_addEdgesOnLowestLevel(edges);
-}
-
-void _addEdgesOnLowestLevel(const std::map<Edge, std::vector<glm::vec4> >& _edges)
-{
+	std::vector< std::vector<Plane> > edgePlanes;
+	_generateEdgePlanes(edges, edgePlanes);
 	
+	_addEdgesOnLowestLevel(edgePlanes, edges);
 }
 
-void _addEdgesSyblings(const std::map<Edge, std::vector<glm::vec4> >& _edges, unsigned int startingID)
+void OctreeVisitor::_generateEdgePlanes(const std::map<Edge, std::vector<glm::vec4>>& edges, std::vector< std::vector<Plane> >& planes) const
 {
-	
+	const auto numEdges = edges.size();
+
+	planes.resize(numEdges);
+
+	unsigned int index = 0;
+	for(const auto edgeInfo : edges)
+	{
+		for (const auto oppositeVertex : edgeInfo.second)
+		{
+			Plane p;
+			GeometryOps::buildEdgeTrianglePlane(edgeInfo.first, edgeInfo.second[0], p);
+
+			planes[index].push_back(p);
+		}
+
+		++index;
+	}
 }
+
+void OctreeVisitor::_addEdgesOnLowestLevel(std::vector< std::vector<Plane> >& edgePlanes, const std::map<Edge, std::vector<glm::vec4>>& edges)
+{
+	const int deepestLevel = _octree->getDeepestLevel();
+	const int levelSize = ipow(OCTREE_NUM_CHILDREN, deepestLevel);
+
+	const int startingIndex = _octree->getNumCellsInPreviousLevels(deepestLevel);
+	const int stopIndex = _octree->getTotalNumNodes();
+	
+	for(unsigned int i = startingIndex; i<stopIndex; i+=OCTREE_NUM_CHILDREN)
+	{
+		_addEdgesSyblingsParent(edgePlanes, edges, i);
+	}
+}
+
+void OctreeVisitor::_addEdgesSyblingsParent(const std::vector< std::vector<Plane> >& edgePlanes, const std::map<Edge, std::vector<glm::vec4>>& edges, unsigned int startingID)
+{
+	unsigned int edgeIndex = 0;
+
+	const int parent = _octree->getNodeParent(startingID);
+
+	for (const auto edge : edges)
+	{
+		unsigned int numPotential = 0;
+		unsigned int numSilhouette = 0;
+
+		int potentialIndices[OCTREE_NUM_CHILDREN];
+		int silhouetteIndices[OCTREE_NUM_CHILDREN];
+
+		const auto numOppositeVertices = edge.second.size();
+
+		if(numOppositeVertices!=2)
+		{
+			if (numOppositeVertices == 1 && parent >=0)
+				_storeEdgeIsPotentiallySilhouette(parent, edgeIndex);
+
+			edgeIndex++;
+			continue;
+		}
+
+		for (unsigned int index = startingID; index<(startingID + OCTREE_NUM_CHILDREN); index++)
+		{
+			EdgeSilhouetness testResult = GeometryOps::testEdgeSpaceAabb(edgePlanes[edgeIndex][0], edgePlanes[edgeIndex][1], edge, _octree->getNodeVolume(index));
+
+			if (testResult== EdgeSilhouetness::EDGE_IS_SILHOUETTE_PLUS)
+				silhouetteIndices[numSilhouette++] = index;
+			else if (testResult == EdgeSilhouetness::EDGE_IS_SILHOUETTE_MINUS)
+				silhouetteIndices[numSilhouette++] = -int(index);
+			else if (testResult == EdgeSilhouetness::EDGE_POTENTIALLY_SILHOUETTE)
+				potentialIndices[numPotential++] = index;
+		}
+
+		if(numPotential == OCTREE_NUM_CHILDREN)
+		{
+			if (parent >= 0)
+				_storeEdgeIsPotentiallySilhouette(parent, edgeIndex);
+
+			numPotential = 0;
+		}
+		
+		if(numSilhouette== OCTREE_NUM_CHILDREN)
+		{
+			
+			if (parent >= 0)
+				_storeEdgeIsAlwaysSilhouette(parent, edgeIndex);
+		}
+		
+		if()
+
+
+
+	}
+}
+
+bool OctreeVisitor::_doAllSilhouetteFaceTheSame(const int(&indices)[OCTREE_NUM_CHILDREN]) const
+{
+	const bool isFirst = indices[0]>0;
+
+	for(unsigned int i = 1; i<OCTREE_NUM_CHILDREN; ++i)
+	{
+		const bool current = indices[i] > 0;
+
+		if (isFirst != current)
+			return false;
+	}
+
+	return isFirst;
+}
+
 
 void OctreeVisitor::_storeEdgeIsAlwaysSilhouette(EdgeSilhouetness testResult, unsigned int nodeId, unsigned int edgeID)
 {
@@ -200,7 +303,7 @@ void OctreeVisitor::_assignPotentialEdgeToNodeParent(unsigned int node, unsigned
 	if (n)
 		n->edgesMayCast.insert(edge);
 }
-
+//NEVOLAT!
 void OctreeVisitor::cleanEmptyNodes()
 {
 	/*const int startingID = _getFirstNodeIdInLevel(_octree->getDeepestLevel());
@@ -265,6 +368,30 @@ void OctreeVisitor::_processEmptyNodesSyblingsParent(unsigned int first)
 
 		if (parent && !parent->edgesMayCast.size() && !parent->edgesAlwaysCast.size())
 			_octree->deleteNode(parentID);
+	}
+}
+
+void OctreeVisitor::_expandWholeOctree()
+{
+	std::stack<unsigned int> nodeStack;
+
+	nodeStack.push(0);
+
+	while(!nodeStack.empty())
+	{
+		const auto node = nodeStack.top();
+		nodeStack.pop();
+
+		_octree->splitNode(node);
+
+		const auto level = _octree->getNodeRecursionLevel(node);
+
+		if (level < _octree->getDeepestLevel())
+		{
+			const auto startingChild = _octree->getChildrenStartingId(node);
+			for (int i = 0; i < OCTREE_NUM_CHILDREN; ++i)
+				nodeStack.push(startingChild + i);
+		}
 	}
 }
 
