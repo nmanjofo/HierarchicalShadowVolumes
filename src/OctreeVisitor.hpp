@@ -5,13 +5,16 @@
 #include "GeometryOperations.hpp"
 #include <memory>
 
+#define EDGE_TYPE std::pair<Edge, std::vector<glm::vec4>>
+#define EDGE_CONTAINER_TYPE std::vector<EDGE_TYPE>
+
 class OctreeVisitor
 {
 public:
 	OctreeVisitor(std::shared_ptr<Octree> octree);
 
-	void addEdge(const std::pair<Edge, std::vector<glm::vec4>>& edgeInfo, int edgeID);
-	void addEdges(const std::map<Edge, std::vector<glm::vec4>>& _edges);
+	void addEdge(const EDGE_TYPE& edgeInfo, int edgeID);
+	void addEdges(const EDGE_CONTAINER_TYPE& _edges);
 
 	void processPotentialEdges();
 
@@ -20,13 +23,15 @@ public:
 private:
 	void _expandWholeOctree();
 	void _storeEdgeIsAlwaysSilhouette(EdgeSilhouetness testResult, unsigned int nodeId, unsigned int edgeID);
+	void _storeEdgeIsAlwaysSilhouette(unsigned int nodeId, int augmentedEdgeIdWithResult);
 	void _storeEdgeIsPotentiallySilhouette(unsigned int nodeID, unsigned int edgeID);
+
 	//void _unmarkEdgeAsPotentiallySilhouetteFromNodeUp(unsigned int edgeID, unsigned int nodeID);
 	//void _removePotentiallySilhouetteEdgeFromNode(unsigned int edgeID, unsigned int nodeID);
 	
 	int	 _getFirstNodeIdInLevel(unsigned int level) const;
 
-	void _propagatePotentiallySilhouettheEdgesUp();
+	void _propagatePotentiallySilhouetteEdgesUpFromLevel(unsigned int startingLevel);
 		enum class TestResult
 		{
 			TRUE,
@@ -39,13 +44,19 @@ private:
 		void _getAllPotentialEdgesSyblings(unsigned int startingID, std::set<unsigned int>& edges) const;
 		void _assignPotentialEdgeToNodeParent(unsigned int node, unsigned int edge);
 		void _removePotentialEdgeFromSyblings(unsigned int startingID, unsigned int edge);
+	
+	void _propagateSilhouetteEdgesUpFromLevel(unsigned int startingLevel);
+		void _processSilhouetteEdgesInLevel(unsigned int level);
+		void _assignSilhouetteEdgeToNodeParent(unsigned int node, int edge);
+		void _getAllSilhouetteEdgesSyblings(unsigned int startingID, std::set<int>& edges) const;
+		void _removeSilhouetteEdgeFromSyblings(unsigned int startingID, int edge);
 
 	void _processEmptyNodesInLevel(unsigned int level);
 		void _processEmptyNodesSyblingsParent(unsigned int first);
 
-	void _addEdgesOnLowestLevel(std::vector< std::vector<Plane> >& edgePlanes, const std::map<Edge, std::vector<glm::vec4>>& edges);
-		void _addEdgesSyblingsParent(const std::vector< std::vector<Plane> >& edgePlanes, const std::map<Edge, std::vector<glm::vec4>>& edges, unsigned int startingID);
-		void _generateEdgePlanes(const std::map<Edge, std::vector<glm::vec4>>& edges, std::vector< std::vector<Plane> >& planes) const;
+	void _addEdgesOnLowestLevel(std::vector< std::vector<Plane> >& edgePlanes, const EDGE_CONTAINER_TYPE& edges);
+		void _addEdgesSyblingsParent(const std::vector< std::vector<Plane> >& edgePlanes, const EDGE_CONTAINER_TYPE& edges, unsigned int startingID);
+		void _generateEdgePlanes(const EDGE_CONTAINER_TYPE& edges, std::vector< std::vector<Plane> >& planes) const;
 		bool _doAllSilhouetteFaceTheSame(const int (&indices)[OCTREE_NUM_CHILDREN]) const;
 
 	std::shared_ptr<Octree> _octree;

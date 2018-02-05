@@ -204,7 +204,7 @@ int Octree::getChildrenStartingId(unsigned int nodeID) const
 {
 	const int nodeLevel = getNodeRecursionLevel(nodeID);
 
-	if (nodeLevel == _deepestLevel)
+	if (nodeLevel > _deepestLevel)
 		return -1;
 
 	assert((nodeLevel >= 0) && nodeLevel<=(int)_deepestLevel);

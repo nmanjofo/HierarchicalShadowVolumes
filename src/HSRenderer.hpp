@@ -61,6 +61,7 @@ private:
 	bool _loadShaders();
 
 	void _loadOctree();
+	void _loadOctree2();
 	void _processOctree();
 	void _testOctree();
 	
@@ -78,7 +79,7 @@ private:
 
 	std::shared_ptr<Scene> _scene;
 
-	std::map<Edge, std::vector<glm::vec4> > _edges;
+	EDGE_CONTAINER_TYPE _edges;
 	std::vector<MultiBitArray> _edgeBitmasks;
 	std::vector<Triangle> _pretransformedTriangles;
 

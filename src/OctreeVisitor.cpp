@@ -58,7 +58,7 @@ void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4>>& edgeI
 	}
 }
 
-void OctreeVisitor::addEdges(const std::map<Edge, std::vector<glm::vec4>>& edges)
+void OctreeVisitor::addEdges(const EDGE_CONTAINER_TYPE& edges)
 {
 	_expandWholeOctree();
 
@@ -66,9 +66,13 @@ void OctreeVisitor::addEdges(const std::map<Edge, std::vector<glm::vec4>>& edges
 	_generateEdgePlanes(edges, edgePlanes);
 	
 	_addEdgesOnLowestLevel(edgePlanes, edges);
+
+	const auto startingLevel = _octree->getDeepestLevel() - 1;
+	_propagatePotentiallySilhouetteEdgesUpFromLevel(startingLevel);
+	_propagateSilhouetteEdgesUpFromLevel(startingLevel);
 }
 
-void OctreeVisitor::_generateEdgePlanes(const std::map<Edge, std::vector<glm::vec4>>& edges, std::vector< std::vector<Plane> >& planes) const
+void OctreeVisitor::_generateEdgePlanes(const EDGE_CONTAINER_TYPE& edges, std::vector< std::vector<Plane> >& planes) const
 {
 	const auto numEdges = edges.size();
 
@@ -80,7 +84,7 @@ void OctreeVisitor::_generateEdgePlanes(const std::map<Edge, std::vector<glm::ve
 		for (const auto oppositeVertex : edgeInfo.second)
 		{
 			Plane p;
-			GeometryOps::buildEdgeTrianglePlane(edgeInfo.first, edgeInfo.second[0], p);
+			GeometryOps::buildEdgeTrianglePlane(edgeInfo.first, oppositeVertex, p);
 
 			planes[index].push_back(p);
 		}
@@ -89,7 +93,7 @@ void OctreeVisitor::_generateEdgePlanes(const std::map<Edge, std::vector<glm::ve
 	}
 }
 
-void OctreeVisitor::_addEdgesOnLowestLevel(std::vector< std::vector<Plane> >& edgePlanes, const std::map<Edge, std::vector<glm::vec4>>& edges)
+void OctreeVisitor::_addEdgesOnLowestLevel(std::vector< std::vector<Plane> >& edgePlanes, const EDGE_CONTAINER_TYPE& edges)
 {
 	const int deepestLevel = _octree->getDeepestLevel();
 	const int levelSize = ipow(OCTREE_NUM_CHILDREN, deepestLevel);
@@ -98,12 +102,10 @@ void OctreeVisitor::_addEdgesOnLowestLevel(std::vector< std::vector<Plane> >& ed
 	const int stopIndex = _octree->getTotalNumNodes();
 	
 	for(unsigned int i = startingIndex; i<stopIndex; i+=OCTREE_NUM_CHILDREN)
-	{
 		_addEdgesSyblingsParent(edgePlanes, edges, i);
-	}
 }
 
-void OctreeVisitor::_addEdgesSyblingsParent(const std::vector< std::vector<Plane> >& edgePlanes, const std::map<Edge, std::vector<glm::vec4>>& edges, unsigned int startingID)
+void OctreeVisitor::_addEdgesSyblingsParent(const std::vector< std::vector<Plane> >& edgePlanes, const EDGE_CONTAINER_TYPE& edges, unsigned int startingID)
 {
 	unsigned int edgeIndex = 0;
 
@@ -140,25 +142,35 @@ void OctreeVisitor::_addEdgesSyblingsParent(const std::vector< std::vector<Plane
 				potentialIndices[numPotential++] = index;
 		}
 
-		if(numPotential == OCTREE_NUM_CHILDREN)
+		if (parent >= 0)
 		{
-			if (parent >= 0)
+			if (numPotential == OCTREE_NUM_CHILDREN)
+			{
 				_storeEdgeIsPotentiallySilhouette(parent, edgeIndex);
+				numPotential = 0;
+			}
 
-			numPotential = 0;
+			if (numSilhouette == OCTREE_NUM_CHILDREN)
+			{
+				const bool sameFacing = _doAllSilhouetteFaceTheSame(silhouetteIndices);
+
+				if (sameFacing)
+				{
+					//TODO - problem: hrana 0 sa neda ulozit zaporne!!!
+					int sign = silhouetteIndices[0] < 0 ? -1 : 1;
+					_storeEdgeIsAlwaysSilhouette(parent, sign * int(edgeIndex));
+					numSilhouette = 0;
+				}
+			}
 		}
-		
-		if(numSilhouette== OCTREE_NUM_CHILDREN)
-		{
-			
-			if (parent >= 0)
-				_storeEdgeIsAlwaysSilhouette(parent, edgeIndex);
-		}
-		
-		if()
 
+		for(unsigned int i = 0; i<numPotential; ++i)
+			_storeEdgeIsPotentiallySilhouette(potentialIndices[i], edgeIndex);
 
+		for (unsigned int i = 0; i<numSilhouette; ++i)
+			_storeEdgeIsAlwaysSilhouette(abs(silhouetteIndices[i]), -int(edgeIndex)*(silhouetteIndices[i]<0) + edgeIndex * (silhouetteIndices[i]>=0));
 
+		++edgeIndex;
 	}
 }
 
@@ -180,15 +192,19 @@ bool OctreeVisitor::_doAllSilhouetteFaceTheSame(const int(&indices)[OCTREE_NUM_C
 
 void OctreeVisitor::_storeEdgeIsAlwaysSilhouette(EdgeSilhouetness testResult, unsigned int nodeId, unsigned int edgeID)
 {
+	if (testResult == EdgeSilhouetness::EDGE_IS_SILHOUETTE_PLUS)
+		_storeEdgeIsAlwaysSilhouette(nodeId, edgeID);
+	else if (testResult == EdgeSilhouetness::EDGE_IS_SILHOUETTE_MINUS)
+		_storeEdgeIsAlwaysSilhouette(nodeId, -int(edgeID));
+}
+
+void OctreeVisitor::_storeEdgeIsAlwaysSilhouette(unsigned int nodeId, int augmentedEdgeIdWithResult)
+{
 	auto node = _octree->getNode(nodeId);
 
 	assert(node != nullptr);
 
-	if (testResult == EdgeSilhouetness::EDGE_IS_SILHOUETTE_PLUS)
-		node->edgesAlwaysCast.insert(edgeID);
-	
-	if (testResult == EdgeSilhouetness::EDGE_IS_SILHOUETTE_MINUS)
-		node->edgesAlwaysCast.insert(-int(edgeID));
+	node->edgesAlwaysCast.insert(augmentedEdgeIdWithResult);
 }
 
 void OctreeVisitor::_storeEdgeIsPotentiallySilhouette(unsigned int nodeID, unsigned int edgeID)
@@ -202,17 +218,22 @@ void OctreeVisitor::_storeEdgeIsPotentiallySilhouette(unsigned int nodeID, unsig
 
 void OctreeVisitor::processPotentialEdges()
 {
-	_propagatePotentiallySilhouettheEdgesUp();
-}
-
-void OctreeVisitor::_propagatePotentiallySilhouettheEdgesUp()
-{
 	const unsigned int maxLevel = _octree->getDeepestLevel();
 
-	for(unsigned int i = maxLevel; i>0; --i)
+	_propagatePotentiallySilhouetteEdgesUpFromLevel(maxLevel);
+}
+
+void OctreeVisitor::_propagatePotentiallySilhouetteEdgesUpFromLevel(unsigned int startingLevel)
+{
+	for(int i = startingLevel; i>0; --i)
 		_processPotentialEdgesInLevel(i);
 }
 
+void OctreeVisitor::_propagateSilhouetteEdgesUpFromLevel(unsigned int startingLevel)
+{
+	for (int i = startingLevel; i > 0; --i)
+		_processSilhouetteEdgesInLevel(i);
+}
 
 OctreeVisitor::TestResult OctreeVisitor::_haveAllSyblingsEdgeAsPotential(unsigned int startingNodeID, unsigned int edgeID) const
 {	
@@ -265,6 +286,37 @@ void OctreeVisitor::_processPotentialEdgesInLevel(unsigned int level)
 	}
 }
 
+void OctreeVisitor::_processSilhouetteEdgesInLevel(unsigned int level)
+{
+	assert(level > 0);
+	const int startingID = _getFirstNodeIdInLevel(level);
+
+	assert(startingID >= 0);
+
+	const unsigned int stopId = ipow(OCTREE_NUM_CHILDREN, level) + startingID;
+
+	unsigned int currentID = startingID;
+
+	while (currentID<stopId)
+	{
+		std::set<int> silhouetteEdgesSyblings;
+		_getAllSilhouetteEdgesSyblings(currentID, silhouetteEdgesSyblings);
+
+		for (auto edge : silhouetteEdgesSyblings)
+		{
+			auto result = _haveAllSyblingsEdgeAsPotential(currentID, edge);
+
+			if (result == TestResult::TRUE)
+			{
+				_assignSilhouetteEdgeToNodeParent(currentID, edge);
+				_removeSilhouetteEdgeFromSyblings(currentID, edge);
+			}
+		}
+
+		currentID += OCTREE_NUM_CHILDREN;
+	}
+}
+
 int	OctreeVisitor::_getFirstNodeIdInLevel(unsigned int level) const
 {
 	return _octree->getNumCellsInPreviousLevels(level);
@@ -281,6 +333,17 @@ void OctreeVisitor::_getAllPotentialEdgesSyblings(unsigned int startingID, std::
 	}
 }
 
+void OctreeVisitor::_getAllSilhouetteEdgesSyblings(unsigned int startingID, std::set<int>& edges) const
+{
+	for (unsigned int i = 0; i<OCTREE_NUM_CHILDREN; ++i)
+	{
+		const auto node = _octree->getNode(startingID + i);
+
+		if (node != nullptr)
+			edges.insert(node->edgesAlwaysCast.begin(), node->edgesAlwaysCast.end());
+	}
+}
+
 void OctreeVisitor::_removePotentialEdgeFromSyblings(unsigned int startingID, unsigned int edge)
 {
 	for(unsigned int i=0; i<OCTREE_NUM_CHILDREN; ++i)
@@ -289,6 +352,17 @@ void OctreeVisitor::_removePotentialEdgeFromSyblings(unsigned int startingID, un
 
 		if(node)
 			node->edgesMayCast.erase(edge);
+	}
+}
+
+void OctreeVisitor::_removeSilhouetteEdgeFromSyblings(unsigned int startingID, int edge)
+{
+	for (unsigned int i = 0; i<OCTREE_NUM_CHILDREN; ++i)
+	{
+		auto node = _octree->getNode(startingID + i);
+
+		if (node)
+			node->edgesAlwaysCast.erase(edge);
 	}
 }
 
@@ -303,6 +377,19 @@ void OctreeVisitor::_assignPotentialEdgeToNodeParent(unsigned int node, unsigned
 	if (n)
 		n->edgesMayCast.insert(edge);
 }
+
+void OctreeVisitor::_assignSilhouetteEdgeToNodeParent(unsigned int node, int edge)
+{
+	const int parent = _octree->getNodeParent(node);
+
+	assert(parent >= 0);
+
+	auto n = _octree->getNode(parent);
+
+	if (n)
+		n->edgesAlwaysCast.insert(edge);
+}
+
 //NEVOLAT!
 void OctreeVisitor::cleanEmptyNodes()
 {

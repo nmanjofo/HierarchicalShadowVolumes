@@ -35,7 +35,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 
 	std::cout << "Scene has " << _pretransformedTriangles.size() * 3 << " triangles\n";
 	std::cout << "Scene has " << _edges.size() << " edges\n";
-
+	/*
 	_generatePerEdgeVoxelInfo(_scene->lightSpace);
 
 	if (!_initSidesRenderData())
@@ -43,7 +43,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	
 	if (!_loadShaders())
 		return false;
-
+	
 	const int voxelIndex = _scene->lightSpace.getVoxelLinearIndexFromPointInSpace(_scene->lightPos);
 
 	if(voxelIndex<0)
@@ -51,16 +51,16 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 		std::cerr << "Bad voxel index\n";
 		return false;
 	}
-
+	
 	AABB voxel;
 	_scene->lightSpace.getVoxelFromLinearIndex(voxelIndex, voxel);
 
 	_generateSidesFromVoxelIndex(voxelIndex, _sides);
 
 	_edgeVisualizer.loadEdges(_edges);
-
+	
 	_updateSides();
-
+	*/
 	_initOctree();
 
 	return true;
@@ -85,7 +85,8 @@ void HierarchicalSilhouetteRenderer::_initOctree()
 	HighResolutionTimer tmr;
 	tmr.reset();
 
-	_loadOctree();
+	//_loadOctree();
+	_loadOctree2();
 
 	const auto buildTime = tmr.getElapsedTimeMilliseconds();
 
@@ -111,6 +112,11 @@ void HierarchicalSilhouetteRenderer::_loadOctree()
 	}
 }
 
+void HierarchicalSilhouetteRenderer::_loadOctree2()
+{
+	_octreeVisitor->addEdges(_edges);
+}
+
 void HierarchicalSilhouetteRenderer::_processOctree()
 {
 	_octreeVisitor->processPotentialEdges();
@@ -131,8 +137,10 @@ void HierarchicalSilhouetteRenderer::onWindowRedraw(glm::mat4 cameraViewProjecti
 {	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	_drawSides(cameraViewProjectionMatrix);
-	_drawEdges(cameraViewProjectionMatrix);
+	//_drawSides(cameraViewProjectionMatrix);
+	//_drawEdges(cameraViewProjectionMatrix);
+
+
 	//_drawScenePhong(cameraViewProjectionMatrix, cameraPosition);
 	//_basicProgram.bind();
 	//_basicProgram.updateUniform("vp", cameraViewProjectionMatrix);

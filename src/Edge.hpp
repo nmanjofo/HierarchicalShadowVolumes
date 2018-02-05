@@ -2,6 +2,8 @@
 
 #include <glm/glm.hpp>
 
+
+
 struct Edge
 {
 	glm::vec3 lowerPoint;
