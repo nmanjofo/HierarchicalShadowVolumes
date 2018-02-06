@@ -2,7 +2,6 @@
 
 #include "AABB.hpp"
 #include "Edge.hpp"
-#include <map>
 #include <vector>
 #include <set>
 
@@ -14,8 +13,20 @@ struct Node
 {
 	AABB volume;
 
-	std::set<int> edgesAlwaysCast; //edge sign = winding
-	std::set<unsigned int> edgesMayCast;
+	std::vector<int> edgesAlwaysCast; //edge sign = winding
+	std::vector<unsigned int> edgesMayCast;
+
+	bool isValid() const
+	{
+		return volume.isValid();
+	}
+
+	void clear()
+	{
+		edgesMayCast.clear();
+		edgesAlwaysCast.clear();
+		volume = AABB();
+	}
 };
 
 
@@ -45,6 +56,8 @@ public:
 	void deleteNodeSubtree(unsigned int nodeID);
 
 	Node* getNode(unsigned int nodeID);
+	const Node* getNode(unsigned int nodeID) const;
+
 	bool nodeExists(unsigned int nodeID) const;
 	bool childrenExist(unsigned int nodeID) const;
 
@@ -64,8 +77,7 @@ private:
 	int _getCorrespondingChildIndexFromPoint(unsigned int nodeID, const glm::vec3& point) const;
 	bool _isPointInsideOctree(const glm::vec3& point) const;
 
-	std::map<unsigned int, Node> _nodes;
-	std::map<unsigned int, std::vector<unsigned int> > _edgesInNode;
+	std::vector<Node> _nodes;
 
 	std::vector<unsigned int> _levelSizesInclusiveSum;
 };

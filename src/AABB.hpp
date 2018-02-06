@@ -33,6 +33,8 @@ struct AABB
 
 	void applyTransform(const glm::mat4& matrix);
 
+	bool isValid() const;
+
 private:
 
 	void _updateExtents();

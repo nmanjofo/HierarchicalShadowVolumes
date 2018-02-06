@@ -22,6 +22,11 @@ AABB AABB::getInvalidAABB()
 	return AABB();
 }
 
+bool AABB::isValid() const
+{
+	return !(_minPoint.x == std::numeric_limits<float>::infinity());
+}
+
 void AABB::setMinMaxPoints(const glm::vec3& minPoint, const glm::vec3& maxPoint)
 {
 	_minPoint = minPoint;

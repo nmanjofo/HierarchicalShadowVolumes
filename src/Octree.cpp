@@ -44,27 +44,34 @@ void Octree::_init(const AABB& volume)
 	Node n;
 	n.volume = volume;
 
+	_nodes.resize(getTotalNumNodes());
 	_nodes[0] = n;
 }
 
 Node* Octree::getNode(unsigned int nodeID)
 {
-	auto n = _nodes.find(nodeID);
-
-	if (n == _nodes.end())
+	if (nodeID > getTotalNumNodes() || !_nodes[nodeID].volume.isValid())
 		return nullptr;
 
-	return &n->second;
+	return &(_nodes[nodeID]);
+}
+
+const Node* Octree::getNode(unsigned int nodeID) const
+{
+	if (nodeID > getTotalNumNodes() || !_nodes[nodeID].volume.isValid())
+		return nullptr;
+
+	return &(_nodes[nodeID]);
 }
 
 AABB Octree::getNodeVolume(unsigned int nodeID) const
 {
 	assert(nodeExists(nodeID));
 	
-	auto iter = _nodes.find(nodeID);
+	const auto n = getNode(nodeID);
 
-	if (iter != _nodes.end())
-		return iter->second.volume;
+	if (n)
+		return n->volume;
 
 	return AABB();
 }
@@ -145,7 +152,7 @@ int Octree::_getCorrespondingChildIndexFromPoint(unsigned int nodeID, const glm:
 
 bool Octree::nodeExists(unsigned int nodeID) const
 {
-	return (nodeID<getTotalNumNodes()) && (_nodes.find(nodeID) != _nodes.end());
+	return (nodeID < getTotalNumNodes()) && _nodes[nodeID].volume.isValid();
 }
 
 bool Octree::childrenExist(unsigned int nodeID) const
@@ -170,12 +177,12 @@ void Octree::splitNode(unsigned int nodeID)
 
 void Octree::deleteNode(unsigned int nodeID)
 {
-	_nodes.erase(nodeID);
+	_nodes[nodeID].clear();
 }
 
 void Octree::deleteNodeSubtree(unsigned nodeID)
 {
-	_nodes.erase(nodeID);
+	_nodes[nodeID].clear();
 
 	const int level = getNodeRecursionLevel(nodeID);
 
@@ -218,7 +225,7 @@ int Octree::getChildrenStartingId(unsigned int nodeID) const
 
 void Octree::_createChild(const AABB& parentSpace, unsigned int newNodeId, unsigned int indexWithinParent)
 {
-	assert(_nodes.find(newNodeId) == _nodes.end());
+	assert(!nodeExists(newNodeId));
 
 	Node n;
 	glm::vec3 minPoint = parentSpace.getMinPoint();
@@ -262,11 +269,7 @@ int Octree::getNodeIndexWithinParent(unsigned int nodeID, unsigned int parent) c
 
 bool Octree::_isPointInsideOctree(const glm::vec3& point) const
 {
-	auto iter = _nodes.find(0);
-	
-	assert(iter != _nodes.end());
-
-	return GeometryOps::testAabbPointIsInsideOrOn(iter->second.volume, point);
+	return GeometryOps::testAabbPointIsInsideOrOn(_nodes[0].volume, point);
 }
 
 unsigned int Octree::getDeepestLevel() const
@@ -289,8 +292,8 @@ unsigned int Octree::getOctreeSizeBytes() const
 	unsigned int numIndices = 0;
 	for(const auto node : _nodes)
 	{
-		numIndices += node.second.edgesAlwaysCast.size();
-		numIndices += node.second.edgesMayCast.size();
+		numIndices += node.edgesAlwaysCast.size();
+		numIndices += node.edgesMayCast.size();
 	}
 
 	sz += sizeof(unsigned int) * numIndices;
