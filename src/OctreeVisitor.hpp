@@ -5,9 +5,6 @@
 #include "GeometryOperations.hpp"
 #include <memory>
 
-#define EDGE_TYPE std::pair<Edge, std::vector<glm::vec4>>
-#define EDGE_CONTAINER_TYPE std::vector<EDGE_TYPE>
-
 class OctreeVisitor
 {
 public:

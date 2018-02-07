@@ -35,9 +35,10 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 
 	std::cout << "Scene has " << _pretransformedTriangles.size() * 3 << " triangles\n";
 	std::cout << "Scene has " << _edges.size() << " edges\n";
-	/*
-	_generatePerEdgeVoxelInfo(_scene->lightSpace);
-
+	
+	_bitArraySilhouettes = std::make_shared<BitArraySilhouettes>();
+	_bitArraySilhouettes->generatePerEdgeVoxelInfo(_scene->lightSpace, _edges);
+	
 	if (!_initSidesRenderData())
 		return false;
 	
@@ -60,8 +61,8 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	_edgeVisualizer.loadEdges(_edges);
 	
 	_updateSides();
-	*/
-	_initOctree();
+	
+	//_initOctree();
 
 	return true;
 }
@@ -186,44 +187,7 @@ void HierarchicalSilhouetteRenderer::_allocateTriangleVector()
 	_pretransformedTriangles.resize(size);
 }
 
-void HierarchicalSilhouetteRenderer::_generatePerEdgeVoxelInfo(const VoxelizedSpace& lightSpace)
-{
-	_edgeBitmasks.clear();
-	
-	for (const auto& edge : _edges)
-	{
-		assert(edge.second.size() <= 2);
-		assert(edge.second.size() != 0);
-
-		MultiBitArray ma(3, lightSpace.getNumVoxels());
-
-		if (edge.second.size() == 1)
-		{
-			ma.setAllCells(int(EdgeSilhouetness::EDGE_POTENTIALLY_SILHOUETTE)); //To force multiplicity calculation due to sides winding
-		}
-		else
-		{
-			Plane p1, p2;
-			
-			GeometryOps::buildEdgeTrianglePlane(edge.first, edge.second[0], p1);
-			GeometryOps::buildEdgeTrianglePlane(edge.first, edge.second[1], p2);
-
-			const unsigned int numVoxels = lightSpace.getNumVoxels();
-			for (unsigned int i = 0; i < numVoxels; ++i)
-			{
-				AABB voxel;
-				lightSpace.getVoxelFromLinearIndex(i, voxel);
-
-				int result = int(GeometryOps::testEdgeSpaceAabb(p1, p2, edge, voxel));
-
-				ma.setCellContent(i, result);
-			}
-		}
-
-		_edgeBitmasks.push_back(ma);
-	}
-}
-
+//TODO - prerobit na genSidesFromLightPos
 void HierarchicalSilhouetteRenderer::_generateSidesFromVoxelIndex(unsigned int voxelLinearIndex, std::vector<glm::vec4>& sides)
 {	
 	int numSilhouetteEdges = 0;
@@ -232,8 +196,9 @@ void HierarchicalSilhouetteRenderer::_generateSidesFromVoxelIndex(unsigned int v
 	unsigned int i = 0;
 	for (const auto& edge : _edges)
 	{
-		int result = _edgeBitmasks[i].getCellContent(voxelLinearIndex);
+		int result = (*_bitArraySilhouettes->getEdgeBitArrays())[i].getCellContent(voxelLinearIndex);
 
+		//TODO - na sign pouzit nejake encode/decode
 		if (EDGE_IS_SILHOUETTE(result))
 		{
 			const int multiplicitySign = (result == int(EdgeSilhouetness::EDGE_IS_SILHOUETTE_PLUS)) + (-1)*(result == int(EdgeSilhouetness::EDGE_IS_SILHOUETTE_MINUS));

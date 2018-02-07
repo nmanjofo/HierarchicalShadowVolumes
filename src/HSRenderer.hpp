@@ -15,6 +15,7 @@
 #include "GLProgram.hpp"
 #include "Octree.hpp"
 #include "OctreeVisitor.hpp"
+#include "BitArraySilhouettes.hpp"
 
 class HierarchicalSilhouetteRenderer
 {
@@ -39,7 +40,7 @@ private:
 	bool _initSidesRenderData();
 
 	//Testing edges against voxels
-	void _generatePerEdgeVoxelInfo(const VoxelizedSpace& lightSpace);
+	//void _generatePerEdgeVoxelInfo(const VoxelizedSpace& lightSpace);
 
 	//Sides generator
 	void _generateSidesFromVoxelIndex(unsigned int voxelLinearIndex, std::vector<glm::vec4>& sides);
@@ -80,11 +81,12 @@ private:
 	std::shared_ptr<Scene> _scene;
 
 	EDGE_CONTAINER_TYPE _edges;
-	std::vector<MultiBitArray> _edgeBitmasks;
 	std::vector<Triangle> _pretransformedTriangles;
 
 	std::vector<glm::vec4> _sides;
 
 	std::shared_ptr<Octree>	_octree;
 	std::shared_ptr<OctreeVisitor> _octreeVisitor;
+
+	std::shared_ptr<BitArraySilhouettes> _bitArraySilhouettes;
 };

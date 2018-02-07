@@ -7,7 +7,6 @@ inline bool isInRange(float value, float min, float max)
 	return value >= min && value <= max;
 }
 
-
 float GeometryOps::testPlanePoint(const Plane& plane, const glm::vec3& point)
 {
 	return plane.equation.x*point.x + plane.equation.y*point.y + plane.equation.z*point.z + plane.equation.w;
@@ -51,7 +50,7 @@ bool GeometryOps::testAabbPointIsInsideOrOn(const AABB& bbox, const glm::vec3& p
 	return isInRange(point.x, minPoint.x, maxPoint.x) & isInRange(point.y, minPoint.y, maxPoint.y) & isInRange(point.z, minPoint.z, maxPoint.z);
 }
 
-EdgeSilhouetness GeometryOps::testEdgeSpaceAabb(const Plane& p1, const Plane& p2, const std::pair<Edge, std::vector<glm::vec4>>& edgeInfo, const AABB& voxel)
+EdgeSilhouetness GeometryOps::testEdgeSpaceAabb(const Plane& p1, const Plane& p2, const EDGE_TYPE& edgeInfo, const AABB& voxel)
 {
 	auto result1 = testAabbPlane(voxel, p1);
 	auto result2 = testAabbPlane(voxel, p2);
@@ -73,7 +72,7 @@ EdgeSilhouetness GeometryOps::testEdgeSpaceAabb(const Plane& p1, const Plane& p2
 	return result;
 }
 
-int GeometryOps::calcEdgeMultiplicity(const std::pair<Edge, std::vector<glm::vec4> >& edgeInfo, const glm::vec3& lightPos)
+int GeometryOps::calcEdgeMultiplicity(const EDGE_TYPE& edgeInfo, const glm::vec3& lightPos)
 {
 	const auto& edge = edgeInfo.first;
 	const auto& oppositeVertices = edgeInfo.second;

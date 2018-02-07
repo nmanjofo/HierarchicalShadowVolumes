@@ -1,7 +1,7 @@
 #include "EdgeExtractor.hpp"
 #include "OctreeVisitor.hpp"
 
-void EdgeExtractor::extractEdgesFromTriangles(const std::vector<Triangle>& triangles, std::vector<std::pair<Edge, std::vector<glm::vec4>>>& edges) const
+void EdgeExtractor::extractEdgesFromTriangles(const std::vector<Triangle>& triangles, EDGE_CONTAINER_TYPE& edges) const
 {
 	std::map<Edge, std::vector<glm::vec4>> tmpMap;
 	

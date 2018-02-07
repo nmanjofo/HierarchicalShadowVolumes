@@ -10,7 +10,7 @@ OctreeVisitor::OctreeVisitor(std::shared_ptr<Octree> octree)
 	_octree = octree;
 }
 
-void OctreeVisitor::addEdge(const std::pair<Edge, std::vector<glm::vec4>>& edgeInfo, int edgeID)
+void OctreeVisitor::addEdge(const EDGE_TYPE& edgeInfo, int edgeID)
 {
 	Plane p1, p2;
 

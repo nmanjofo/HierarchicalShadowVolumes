@@ -6,7 +6,6 @@
 #include <GL/glew.h>
 
 #include <glm/glm.hpp>
-#include <map>
 #include <vector>
 
 class EdgeVisualizer
@@ -15,7 +14,7 @@ public:
 	EdgeVisualizer();
 	~EdgeVisualizer();
 	
-	void loadEdges(const std::map<Edge, std::vector<glm::vec4> >& edges);
+	void loadEdges(const EDGE_CONTAINER_TYPE& edges);
 	
 	void drawEdges() const;
 

@@ -2,7 +2,8 @@
 
 #include <glm/glm.hpp>
 
-
+#define EDGE_TYPE std::pair<Edge, std::vector<glm::vec4>>
+#define EDGE_CONTAINER_TYPE std::vector<EDGE_TYPE>
 
 struct Edge
 {

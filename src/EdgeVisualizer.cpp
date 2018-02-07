@@ -10,7 +10,7 @@ EdgeVisualizer::~EdgeVisualizer()
 	clear();
 }
 
-void EdgeVisualizer::loadEdges(const std::map<Edge, std::vector<glm::vec4> >& edges)
+void EdgeVisualizer::loadEdges(const EDGE_CONTAINER_TYPE& edges)
 {
 	if (_numEdges)
 		clear();

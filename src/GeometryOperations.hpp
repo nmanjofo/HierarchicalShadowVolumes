@@ -33,9 +33,9 @@ namespace GeometryOps
 
 	TestResult interpretResult(float result);
 
-	EdgeSilhouetness testEdgeSpaceAabb(const Plane& p1, const Plane& p2, const std::pair<Edge, std::vector<glm::vec4> >& edgeInfo, const AABB& voxel);
+	EdgeSilhouetness testEdgeSpaceAabb(const Plane& p1, const Plane& p2, const EDGE_TYPE& edgeInfo, const AABB& voxel);
 
-	int calcEdgeMultiplicity(const std::pair<Edge, std::vector<glm::vec4> >& edgeInfo, const glm::vec3& lightPos);
+	int calcEdgeMultiplicity(const EDGE_TYPE& edgeInfo, const glm::vec3& lightPos);
 
 	void buildEdgeTrianglePlane(const Edge& edge, const glm::vec4& oppositeVertex, Plane& plane);
 };

@@ -22,6 +22,7 @@ find_package(OpenGL REQUIRED)
 set(SRC_FILES
 	${PROJECT_SRC_DIR}/AABB.cpp
 	${PROJECT_SRC_DIR}/Application.cpp
+	${PROJECT_SRC_DIR}/BitArraySilhouettes.cpp
 	${PROJECT_SRC_DIR}/CameraPath.cpp
     ${PROJECT_SRC_DIR}/Edge.cpp
     ${PROJECT_SRC_DIR}/EdgeExtractor.cpp
@@ -47,7 +48,9 @@ set(SRC_FILES
 
 set(HEADER_FILES
 	${PROJECT_SRC_DIR}/AABB.hpp
+	${PROJECT_SRC_DIR}/AbstractSilhouetteMethod.hpp
 	${PROJECT_SRC_DIR}/Application.hpp
+	${PROJECT_SRC_DIR}/BitArraySilhouettes.hpp
 	${PROJECT_SRC_DIR}/BitOperations.h
 	${PROJECT_SRC_DIR}/CameraPath.h
     ${PROJECT_SRC_DIR}/Edge.hpp
