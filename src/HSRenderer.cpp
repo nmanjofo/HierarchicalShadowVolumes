@@ -1,4 +1,5 @@
 #include <iostream>
+#include <algorithm>
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -47,15 +48,16 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	}
 	//*/
 
+	
 	{
 		OctreeParams params;
 		params.maxDepthLevel = 5;
 
-		AABB space;
-		space.setMinMaxPoints(glm::vec3(-50, -50, -50), glm::vec3(50, 50, 50));
+		//AABB space;
+		//space.setMinMaxPoints(glm::vec3(-50, -50, -50), glm::vec3(50, 50, 50));
 
 		_silhouetteMethod = std::make_shared<OctreeSilhouettes>();
-		_silhouetteMethod->initialize(_edges, space, &params);
+		_silhouetteMethod->initialize(_edges, _voxelSpace, &params);
 		std::cout << "Octree has size " << _silhouetteMethod->getAccelerationStructureSizeBytes() / 1024.0f / 1024.0f << "MB\n";
 	}
 	//*/
@@ -70,6 +72,8 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	std::vector<int> silhouetteEdges;
 
 	_silhouetteMethod->getSilhouetteEdgesForLightPos(_scene->lightPos, potentialEdges, silhouetteEdges);
+
+	std::cout << "Num potential: " << potentialEdges.size() << " num silhouette: " << silhouetteEdges.size() << std::endl;
 
 	_generateSidesFromEdgeIndices(potentialEdges, silhouetteEdges, _sides);
 
@@ -205,6 +209,11 @@ void HierarchicalSilhouetteRenderer::_allocateTriangleVector()
 //TODO - prerobit na genSidesFromLightPos
 void HierarchicalSilhouetteRenderer::_generateSidesFromEdgeIndices(const std::vector<int>& potentialEdges, const std::vector<int>& silhouetteEdges, std::vector<glm::vec4>& sides)
 {	
+	unsigned int numSilhouetteEdges = silhouetteEdges.size();
+	
+	std::vector<int> edges;
+	edges.insert(edges.end(), silhouetteEdges.begin(), silhouetteEdges.end());
+
 	for(const auto edge : silhouetteEdges)
 	{
 		//TODO tu opravit edge==0 moze mat len jednu orientaciu
@@ -216,7 +225,19 @@ void HierarchicalSilhouetteRenderer::_generateSidesFromEdgeIndices(const std::ve
 	{
 		const int multiplicity = GeometryOps::calcEdgeMultiplicity(_edges[edge], _scene->lightPos);
 		if (multiplicity != 0)
+		{
 			_generatePushSideFromEdge(_scene->lightPos, _edges[edge].first, multiplicity, sides);
+			++numSilhouetteEdges;
+			edges.push_back(edge);
+		}
+	}
+
+	std::sort(edges.begin(), edges.end());
+
+	std::cout << "Silhouette consists of " << numSilhouetteEdges << " edges\n";
+	for(const auto edge: edges)
+	{
+		std::cout << edge << std::endl;
 	}
 }
 

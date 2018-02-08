@@ -496,7 +496,7 @@ int OctreeVisitor::getLowestNodeIndexFromPoint(const glm::vec3& point) const
 	int currentParent = 0;
 	const unsigned int deepestLevel = _octree->getDeepestLevel();
 
-	for(unsigned int level = 1; level<deepestLevel && currentParent>=0; ++level)
+	for(unsigned int level = 0; level<deepestLevel && currentParent>=0; ++level)
 		currentParent = _getChildNodeContainingPoint(currentParent, point);
 
 	return currentParent;
