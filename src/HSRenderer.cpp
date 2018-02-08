@@ -21,7 +21,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	//_scene->lightPos = glm::vec3(0, 9.9, 0);
 	_scene->lightPos = glm::vec3(0, -8, 4);
 	
-	_initVoxelization();
+	_initVoxelSpace();
 
 	_initGL(screenWidth, screenHeight);
 
@@ -35,28 +35,43 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 
 	std::cout << "Scene has " << _pretransformedTriangles.size() * 3 << " triangles\n";
 	std::cout << "Scene has " << _edges.size() << " edges\n";
-	
-	_bitArraySilhouettes = std::make_shared<BitArraySilhouettes>();
-	_bitArraySilhouettes->generatePerEdgeVoxelInfo(_scene->lightSpace, _edges);
-	
+	/*
+	{
+		VoxelParams params;
+		params.numVoxelsX = params.numVoxelsY = params.numVoxelsZ = 10;
+
+		_silhouetteMethod = std::make_shared<BitArrayVoxelSilhouettes>();
+		_silhouetteMethod->initialize(_edges, _voxelSpace, &params);
+
+		std::cout << "Bit array has size " << _silhouetteMethod->getAccelerationStructureSizeBytes() / 1024.0f / 1024.0f << "MB\n";
+	}
+	//*/
+
+	{
+		OctreeParams params;
+		params.maxDepthLevel = 5;
+
+		AABB space;
+		space.setMinMaxPoints(glm::vec3(-50, -50, -50), glm::vec3(50, 50, 50));
+
+		_silhouetteMethod = std::make_shared<OctreeSilhouettes>();
+		_silhouetteMethod->initialize(_edges, space, &params);
+		std::cout << "Octree has size " << _silhouetteMethod->getAccelerationStructureSizeBytes() / 1024.0f / 1024.0f << "MB\n";
+	}
+	//*/
+
 	if (!_initSidesRenderData())
 		return false;
 	
 	if (!_loadShaders())
 		return false;
 	
-	const int voxelIndex = _scene->lightSpace.getVoxelLinearIndexFromPointInSpace(_scene->lightPos);
+	std::vector<int> potentialEdges;
+	std::vector<int> silhouetteEdges;
 
-	if(voxelIndex<0)
-	{
-		std::cerr << "Bad voxel index\n";
-		return false;
-	}
-	
-	AABB voxel;
-	_scene->lightSpace.getVoxelFromLinearIndex(voxelIndex, voxel);
+	_silhouetteMethod->getSilhouetteEdgesForLightPos(_scene->lightPos, potentialEdges, silhouetteEdges);
 
-	_generateSidesFromVoxelIndex(voxelIndex, _sides);
+	_generateSidesFromEdgeIndices(potentialEdges, silhouetteEdges, _sides);
 
 	_edgeVisualizer.loadEdges(_edges);
 	
@@ -138,8 +153,8 @@ void HierarchicalSilhouetteRenderer::onWindowRedraw(glm::mat4 cameraViewProjecti
 {	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	//_drawSides(cameraViewProjectionMatrix);
-	//_drawEdges(cameraViewProjectionMatrix);
+	_drawSides(cameraViewProjectionMatrix);
+	_drawEdges(cameraViewProjectionMatrix);
 
 
 	//_drawScenePhong(cameraViewProjectionMatrix, cameraPosition);
@@ -188,31 +203,20 @@ void HierarchicalSilhouetteRenderer::_allocateTriangleVector()
 }
 
 //TODO - prerobit na genSidesFromLightPos
-void HierarchicalSilhouetteRenderer::_generateSidesFromVoxelIndex(unsigned int voxelLinearIndex, std::vector<glm::vec4>& sides)
+void HierarchicalSilhouetteRenderer::_generateSidesFromEdgeIndices(const std::vector<int>& potentialEdges, const std::vector<int>& silhouetteEdges, std::vector<glm::vec4>& sides)
 {	
-	int numSilhouetteEdges = 0;
-
-	const auto numEdges = _edges.size();
-	unsigned int i = 0;
-	for (const auto& edge : _edges)
+	for(const auto edge : silhouetteEdges)
 	{
-		int result = (*_bitArraySilhouettes->getEdgeBitArrays())[i].getCellContent(voxelLinearIndex);
+		//TODO tu opravit edge==0 moze mat len jednu orientaciu
+		const int multiplicitySign = edge >= 0 ? 1 : -1;
+		_generatePushSideFromEdge(_scene->lightPos, _edges[edge].first, multiplicitySign, sides);
+	}
 
-		//TODO - na sign pouzit nejake encode/decode
-		if (EDGE_IS_SILHOUETTE(result))
-		{
-			const int multiplicitySign = (result == int(EdgeSilhouetness::EDGE_IS_SILHOUETTE_PLUS)) + (-1)*(result == int(EdgeSilhouetness::EDGE_IS_SILHOUETTE_MINUS));
-			_generatePushSideFromEdge(_scene->lightPos, edge.first, multiplicitySign, sides);
-		}
-
-		if (result == int(EdgeSilhouetness::EDGE_POTENTIALLY_SILHOUETTE))
-		{
-			int r = GeometryOps::calcEdgeMultiplicity(edge, _scene->lightPos);
-			if(r!=0)
-				_generatePushSideFromEdge(_scene->lightPos, edge.first, r, sides);
-		}
-
-		++i;
+	for (const auto edge : potentialEdges)
+	{
+		const int multiplicity = GeometryOps::calcEdgeMultiplicity(_edges[edge], _scene->lightPos);
+		if (multiplicity != 0)
+			_generatePushSideFromEdge(_scene->lightPos, _edges[edge].first, multiplicity, sides);
 	}
 }
 
@@ -328,12 +332,9 @@ void HierarchicalSilhouetteRenderer::_drawScenePhong(const glm::mat4& vp, const 
 	assert(glGetError() == GL_NO_ERROR);
 }
 
-void HierarchicalSilhouetteRenderer::_initVoxelization()
+void HierarchicalSilhouetteRenderer::_initVoxelSpace()
 {
-	AABB space;
-	space.setMinMaxPoints(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));
-	_scene->lightSpace.init(space, 10, 10, 10);
-	//_scene->lightSpace.init(space, 2, 2, 2);
+	_voxelSpace.setMinMaxPoints(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));
 }
 
 void HierarchicalSilhouetteRenderer::_testOctree()

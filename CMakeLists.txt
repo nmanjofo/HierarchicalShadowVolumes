@@ -22,7 +22,7 @@ find_package(OpenGL REQUIRED)
 set(SRC_FILES
 	${PROJECT_SRC_DIR}/AABB.cpp
 	${PROJECT_SRC_DIR}/Application.cpp
-	${PROJECT_SRC_DIR}/BitArraySilhouettes.cpp
+	${PROJECT_SRC_DIR}/BitArrayVoxelSilhouettes.cpp
 	${PROJECT_SRC_DIR}/CameraPath.cpp
     ${PROJECT_SRC_DIR}/Edge.cpp
     ${PROJECT_SRC_DIR}/EdgeExtractor.cpp
@@ -36,6 +36,7 @@ set(SRC_FILES
 	${PROJECT_SRC_DIR}/ModelLoader.cpp
 	${PROJECT_SRC_DIR}/MultiBitArray.cpp
     ${PROJECT_SRC_DIR}/Octree.cpp
+	${PROJECT_SRC_DIR}/OctreeSilhouettes.cpp
     ${PROJECT_SRC_DIR}/OctreeVisitor.cpp
     ${PROJECT_SRC_DIR}/OGLScene.cpp
 	${PROJECT_SRC_DIR}/OrbitalCamera.cpp
@@ -50,7 +51,7 @@ set(HEADER_FILES
 	${PROJECT_SRC_DIR}/AABB.hpp
 	${PROJECT_SRC_DIR}/AbstractSilhouetteMethod.hpp
 	${PROJECT_SRC_DIR}/Application.hpp
-	${PROJECT_SRC_DIR}/BitArraySilhouettes.hpp
+	${PROJECT_SRC_DIR}/BitArrayVoxelSilhouettes.hpp
 	${PROJECT_SRC_DIR}/BitOperations.h
 	${PROJECT_SRC_DIR}/CameraPath.h
     ${PROJECT_SRC_DIR}/Edge.hpp
@@ -64,6 +65,7 @@ set(HEADER_FILES
 	${PROJECT_SRC_DIR}/ModelLoader.hpp
 	${PROJECT_SRC_DIR}/MultiBitArray.hpp
     ${PROJECT_SRC_DIR}/Octree.hpp
+	${PROJECT_SRC_DIR}/OctreeSilhouettes.hpp
     ${PROJECT_SRC_DIR}/OctreeVisitor.hpp
     ${PROJECT_SRC_DIR}/OGLScene.hpp
 	${PROJECT_SRC_DIR}/OrbitalCamera.hpp

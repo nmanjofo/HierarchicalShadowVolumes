@@ -283,7 +283,7 @@ unsigned int Octree::getTotalNumNodes() const
 }
 
 
-unsigned int Octree::getOctreeSizeBytes() const
+size_t Octree::getOctreeSizeBytes() const
 {
 	unsigned int sz = 0;
 

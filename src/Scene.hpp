@@ -62,6 +62,4 @@ struct Scene
     AABB                    bbox;
 
 	glm::vec3				lightPos;
-
-	VoxelizedSpace          lightSpace;
 };

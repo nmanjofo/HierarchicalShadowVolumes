@@ -491,4 +491,52 @@ void OctreeVisitor::_expandWholeOctree()
 	}
 }
 
+int OctreeVisitor::getLowestNodeIndexFromPoint(const glm::vec3& point) const
+{
+	int currentParent = 0;
+	const unsigned int deepestLevel = _octree->getDeepestLevel();
 
+	for(unsigned int level = 1; level<deepestLevel && currentParent>=0; ++level)
+		currentParent = _getChildNodeContainingPoint(currentParent, point);
+
+	return currentParent;
+}
+
+bool OctreeVisitor::_isPointInsideNode(unsigned int nodeID, const glm::vec3& point) const
+{
+	const auto node = _octree->getNode(nodeID);
+
+	assert(node != nullptr);
+
+	return GeometryOps::testAabbPointIsInsideOrOn(node->volume, point);
+}
+
+int OctreeVisitor::_getChildNodeContainingPoint(unsigned int parent, const glm::vec3& point) const
+{
+	const int startingID = _octree->getChildrenStartingId(parent);
+
+	for(unsigned int i=0; i<OCTREE_NUM_CHILDREN; ++i)
+	{
+		if (_isPointInsideNode(startingID + i, point))
+			return startingID + i;
+	}
+
+	return -1;
+}
+
+void OctreeVisitor::getSilhouttePotentialEdgesFromNodeUp(std::vector<int>& potential, std::vector<int>& silhouette, unsigned int nodeID) const
+{
+	int currentNodeID = nodeID;
+
+	while(currentNodeID>=0)
+	{
+		const auto node = _octree->getNode(currentNodeID);
+
+		assert(node != nullptr);
+
+		silhouette.insert(silhouette.end(), node->edgesAlwaysCast.begin(), node->edgesAlwaysCast.end());
+		potential.insert(potential.end(), node->edgesMayCast.begin(), node->edgesMayCast.end());
+
+		currentNodeID = _octree->getNodeParent(currentNodeID);
+	}
+}

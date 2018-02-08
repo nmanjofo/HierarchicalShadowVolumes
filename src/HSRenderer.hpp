@@ -15,7 +15,8 @@
 #include "GLProgram.hpp"
 #include "Octree.hpp"
 #include "OctreeVisitor.hpp"
-#include "BitArraySilhouettes.hpp"
+#include "BitArrayVoxelSilhouettes.hpp"
+#include "OctreeSilhouettes.hpp"
 
 class HierarchicalSilhouetteRenderer
 {
@@ -29,7 +30,7 @@ public:
 	void clear();
 
 private:
-	void _initVoxelization();
+	void _initVoxelSpace();
 	void _initOctree();
 
 	//Edge generation
@@ -43,7 +44,7 @@ private:
 	//void _generatePerEdgeVoxelInfo(const VoxelizedSpace& lightSpace);
 
 	//Sides generator
-	void _generateSidesFromVoxelIndex(unsigned int voxelLinearIndex, std::vector<glm::vec4>& sides);
+	void _generateSidesFromEdgeIndices(const std::vector<int>& potentialEdges, const std::vector<int>& silhouetteEdges, std::vector<glm::vec4>& sides);
 	void _generatePushSideFromEdge(const glm::vec3& lightPos, const Edge& edge, int multiplicitySign, std::vector<glm::vec4>& sides) const;
 
 	//Shadow volume rendering
@@ -78,6 +79,8 @@ private:
 
 	OGLScene	   _oglScene;
 
+	AABB		   _voxelSpace;
+
 	std::shared_ptr<Scene> _scene;
 
 	EDGE_CONTAINER_TYPE _edges;
@@ -88,5 +91,5 @@ private:
 	std::shared_ptr<Octree>	_octree;
 	std::shared_ptr<OctreeVisitor> _octreeVisitor;
 
-	std::shared_ptr<BitArraySilhouettes> _bitArraySilhouettes;
+	std::shared_ptr<AbstractSilhouetteMethod> _silhouetteMethod;
 };

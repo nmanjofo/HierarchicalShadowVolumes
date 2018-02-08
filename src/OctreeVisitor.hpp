@@ -17,6 +17,9 @@ public:
 
 	void cleanEmptyNodes();
 
+	int getLowestNodeIndexFromPoint(const glm::vec3& point) const;
+	void getSilhouttePotentialEdgesFromNodeUp(std::vector<int>& potential, std::vector<int>& silhouette, unsigned int nodeID) const;
+
 private:
 	void _expandWholeOctree();
 	void _storeEdgeIsAlwaysSilhouette(EdgeSilhouetness testResult, unsigned int nodeId, unsigned int edgeID);
@@ -55,6 +58,10 @@ private:
 		void _addEdgesSyblingsParent(const std::vector< std::vector<Plane> >& edgePlanes, const EDGE_CONTAINER_TYPE& edges, unsigned int startingID);
 		void _generateEdgePlanes(const EDGE_CONTAINER_TYPE& edges, std::vector< std::vector<Plane> >& planes) const;
 		bool _doAllSilhouetteFaceTheSame(const int (&indices)[OCTREE_NUM_CHILDREN]) const;
+
+	bool _isPointInsideNode(unsigned int nodeID, const glm::vec3& point) const;
+
+	int _getChildNodeContainingPoint(unsigned int parent, const glm::vec3& point) const;
 
 	std::shared_ptr<Octree> _octree;
 };

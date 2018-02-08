@@ -65,7 +65,7 @@ public:
 	unsigned int getDeepestLevel() const;
 	unsigned int getTotalNumNodes() const;
 
-	unsigned int getOctreeSizeBytes() const;
+	size_t getOctreeSizeBytes() const;
 
 private:
 	unsigned int _deepestLevel;
