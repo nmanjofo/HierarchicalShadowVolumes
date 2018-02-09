@@ -31,7 +31,7 @@ public:
 
 private:
 	void _initVoxelSpace();
-	void _initOctree();
+	//void _initOctree();
 
 	//Edge generation
 	void _generateScenePretransformedGeometry();
@@ -62,9 +62,9 @@ private:
 	void _initGL(unsigned int screenWidth, unsigned int screenHeight);
 	bool _loadShaders();
 
-	void _loadOctree();
-	void _loadOctree2();
-	void _processOctree();
+	//void _loadOctree();
+	//void _loadOctree2();
+	//void _processOctree();
 	void _testOctree();
 	
 

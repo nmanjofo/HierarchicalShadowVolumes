@@ -35,6 +35,15 @@ void OctreeSilhouettes::getSilhouetteEdgesForLightPos(const glm::vec3& lightPos,
 {
 	const int lowestNode = _visitor->getLowestNodeIndexFromPoint(lightPos);
 
+	std::cout << "Light pos: " << lightPos.x << ", " << lightPos.y << ", " << lightPos.z << std::endl;
+	std::cout << "Light containing node: " << lowestNode << std::endl;
+
+	const auto n = _octree->getNode(lowestNode);
+	const auto minP = n->volume.getMinPoint();
+	const auto maxP = n->volume.getMaxPoint();
+	std::cout << "Node space " << minP.x << ", " << minP.y << ", " << minP.z << " Max: " << maxP.x << ", " << maxP.y << ", " << maxP.z << "\n";
+
+
 	if (lowestNode < 0)
 		return;
 

@@ -36,10 +36,10 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 
 	std::cout << "Scene has " << _pretransformedTriangles.size() * 3 << " triangles\n";
 	std::cout << "Scene has " << _edges.size() << " edges\n";
-	/*
+	
 	{
 		VoxelParams params;
-		params.numVoxelsX = params.numVoxelsY = params.numVoxelsZ = 10;
+		params.numVoxelsX = params.numVoxelsY = params.numVoxelsZ = 30;
 
 		_silhouetteMethod = std::make_shared<BitArrayVoxelSilhouettes>();
 		_silhouetteMethod->initialize(_edges, _voxelSpace, &params);
@@ -48,7 +48,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	}
 	//*/
 
-	
+	/*
 	{
 		OctreeParams params;
 		params.maxDepthLevel = 5;
@@ -93,7 +93,7 @@ void HierarchicalSilhouetteRenderer::_initGL(unsigned int screenWidth, unsigned 
 	glViewport(0, 0, screenWidth, screenHeight);
 	glClearColor(1, 1, 1, 1);
 }
-
+/*
 void HierarchicalSilhouetteRenderer::_initOctree()
 {
 	AABB space;
@@ -142,7 +142,7 @@ void HierarchicalSilhouetteRenderer::_processOctree()
 	_octreeVisitor->processPotentialEdges();
 	_octreeVisitor->cleanEmptyNodes();
 }
-
+*/
 void HierarchicalSilhouetteRenderer::onUpdate(float timeSinceLastUpdateMs)
 {
 	
@@ -206,21 +206,20 @@ void HierarchicalSilhouetteRenderer::_allocateTriangleVector()
 	_pretransformedTriangles.resize(size);
 }
 
-//TODO - prerobit na genSidesFromLightPos
 void HierarchicalSilhouetteRenderer::_generateSidesFromEdgeIndices(const std::vector<int>& potentialEdges, const std::vector<int>& silhouetteEdges, std::vector<glm::vec4>& sides)
 {	
 	unsigned int numSilhouetteEdges = silhouetteEdges.size();
 	
 	std::vector<int> edges;
 	edges.insert(edges.end(), silhouetteEdges.begin(), silhouetteEdges.end());
-
+	
 	for(const auto edge : silhouetteEdges)
 	{
 		//TODO tu opravit edge==0 moze mat len jednu orientaciu
 		const int multiplicitySign = edge >= 0 ? 1 : -1;
 		_generatePushSideFromEdge(_scene->lightPos, _edges[edge].first, multiplicitySign, sides);
 	}
-
+	
 	for (const auto edge : potentialEdges)
 	{
 		const int multiplicity = GeometryOps::calcEdgeMultiplicity(_edges[edge], _scene->lightPos);
@@ -232,7 +231,7 @@ void HierarchicalSilhouetteRenderer::_generateSidesFromEdgeIndices(const std::ve
 		}
 	}
 
-	std::sort(edges.begin(), edges.end());
+	//std::sort(edges.begin(), edges.end());
 
 	std::cout << "Silhouette consists of " << numSilhouetteEdges << " edges\n";
 	for(const auto edge: edges)
