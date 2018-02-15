@@ -36,7 +36,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 
 	std::cout << "Scene has " << _pretransformedTriangles.size() * 3 << " triangles\n";
 	std::cout << "Scene has " << _edges.size() << " edges\n";
-	
+	/*
 	{
 		VoxelParams params;
 		params.numVoxelsX = params.numVoxelsY = params.numVoxelsZ = 30;
@@ -48,7 +48,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	}
 	//*/
 
-	/*
+	
 	{
 		OctreeParams params;
 		params.maxDepthLevel = 5;
@@ -216,8 +216,17 @@ void HierarchicalSilhouetteRenderer::_generateSidesFromEdgeIndices(const std::ve
 	for(const auto edge : silhouetteEdges)
 	{
 		//TODO tu opravit edge==0 moze mat len jednu orientaciu
+		
 		const int multiplicitySign = edge >= 0 ? 1 : -1;
-		_generatePushSideFromEdge(_scene->lightPos, _edges[edge].first, multiplicitySign, sides);
+		_generatePushSideFromEdge(_scene->lightPos, _edges[abs(edge)].first, multiplicitySign, sides);
+		
+		/*
+		const int multiplicity = GeometryOps::calcEdgeMultiplicity(_edges[abs(edge)], _scene->lightPos);
+		if (multiplicity != 0)
+		{
+			_generatePushSideFromEdge(_scene->lightPos, _edges[abs(edge)].first, multiplicity, sides);
+		}
+		*/
 	}
 	
 	for (const auto edge : potentialEdges)
