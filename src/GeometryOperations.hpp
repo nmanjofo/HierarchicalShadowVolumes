@@ -14,7 +14,7 @@ enum class EdgeSilhouetness : int
 	EDGE_IS_SILHOUETTE_MINUS = 3
 };
 
-#define EDGE_IS_SILHOUETTE(sihlouettness) (int(sihlouettness) > 2)
+#define EDGE_IS_SILHOUETTE(sihlouettness) (int(sihlouettness) >= 2)
 
 enum class TestResult : int
 {

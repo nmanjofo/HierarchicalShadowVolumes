@@ -30,12 +30,14 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 
 	_allocateTriangleVector();
 	_generateScenePretransformedGeometry();
-
+	
 	EdgeExtractor extractor;
 	extractor.extractEdgesFromTriangles(_pretransformedTriangles, _edges);
 
 	std::cout << "Scene has " << _pretransformedTriangles.size() * 3 << " triangles\n";
 	std::cout << "Scene has " << _edges.size() << " edges\n";
+	std::cout << "Light pos: " << _scene->lightPos.x << ", " << _scene->lightPos.y << ", " << _scene->lightPos.z << std::endl;
+	
 	/*
 	{
 		VoxelParams params;
@@ -47,7 +49,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 		std::cout << "Bit array has size " << _silhouetteMethod->getAccelerationStructureSizeBytes() / 1024.0f / 1024.0f << "MB\n";
 	}
 	//*/
-
+	
 	
 	{
 		OctreeParams params;
@@ -219,6 +221,7 @@ void HierarchicalSilhouetteRenderer::_generateSidesFromEdgeIndices(const std::ve
 		
 		const int multiplicitySign = edge >= 0 ? 1 : -1;
 		_generatePushSideFromEdge(_scene->lightPos, _edges[abs(edge)].first, multiplicitySign, sides);
+		//*/
 		
 		/*
 		const int multiplicity = GeometryOps::calcEdgeMultiplicity(_edges[abs(edge)], _scene->lightPos);
@@ -226,7 +229,7 @@ void HierarchicalSilhouetteRenderer::_generateSidesFromEdgeIndices(const std::ve
 		{
 			_generatePushSideFromEdge(_scene->lightPos, _edges[abs(edge)].first, multiplicity, sides);
 		}
-		*/
+		//*/
 	}
 	
 	for (const auto edge : potentialEdges)

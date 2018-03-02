@@ -22,14 +22,17 @@ void BitArrayVoxelSilhouettes::initialize(const EDGE_CONTAINER_TYPE& edges, cons
 
 	_voxelizedSpace.init(lightSpace, params->numVoxelsX, params->numVoxelsY, params->numVoxelsZ);
 
+	unsigned int edgeIndex = 0;
 	for (const auto& edge : edges)
 	{
 		assert(edge.second.size() <= 2);
 
 		//assert(edge.second.size() != 0);
 		if (edge.second.size() == 0)
+		{
+			edgeIndex++;
 			continue;
-
+		}
 		MultiBitArray ma(3, _voxelizedSpace.getNumVoxels());
 
 		if (edge.second.size() == 1)
@@ -55,6 +58,8 @@ void BitArrayVoxelSilhouettes::initialize(const EDGE_CONTAINER_TYPE& edges, cons
 			}
 		}
 
+		edgeIndex++;
+
 		_edgeBitmasks.push_back(ma);
 	}
 }
@@ -69,6 +74,14 @@ void BitArrayVoxelSilhouettes::getSilhouetteEdgesForLightPos(const glm::vec3& li
 	AABB voxel;
 	const int voxelIndex = _getVoxelIndexAABBFromPos(lightPos, voxel);
 	
+	std::cout << "Voxel index: " << voxelIndex << "\n";
+	auto minP = voxel.getMinPoint();
+	auto maxP = voxel.getMaxPoint();
+	std::cout << "Voxel space " << minP.x << ", " << minP.y << ", " << minP.z << " Max: " << maxP.x << ", " << maxP.y << ", " << maxP.z << "\n";
+	minP = voxel.getCenterPoint();
+	voxel.getExtents(maxP.x, maxP.y, maxP.z);
+	std::cout << "Center " << minP.x << ", " << minP.y << ", " << minP.z << " Extents: " << maxP.x << ", " << maxP.y << ", " << maxP.z << "\n";
+
 	if (voxelIndex < 0)
 		return;
 
