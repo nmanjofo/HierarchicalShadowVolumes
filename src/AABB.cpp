@@ -96,14 +96,14 @@ void AABB::getTransformedAABB(const glm::mat4 matrix, AABB& newBB) const
 void AABB::getAllVertices(glm::vec3(&points)[8]) const
 {
 	points[0] = _minPoint;
-	points[1] = _minPoint + glm::vec3(_extentX, 0, 0);
-	points[2] = _minPoint + glm::vec3(_extentX, 0, _extentZ);
-	points[3] = _minPoint + glm::vec3(0, 0, _extentZ);
+	points[1] = glm::vec3(_minPoint.x + _extentX, _minPoint.y, _minPoint.z);
+	points[2] = glm::vec3(_minPoint.x, _minPoint.y, _minPoint.z + _extentZ);
+	points[3] = glm::vec3(_minPoint.x + _extentX, _minPoint.y, _minPoint.z + _extentZ);
 
-	points[4] = _minPoint + glm::vec3(0, _extentY, 0);
-	points[5] = _minPoint + glm::vec3(_extentX, _extentY, 0);
-	points[6] = _minPoint + glm::vec3(_extentX, _extentY, _extentZ);
-	points[7] = _minPoint + glm::vec3(0, _extentY, _extentZ);
+	points[4] = glm::vec3(_minPoint.x, _minPoint.y + _extentY, _minPoint.z);
+	points[5] = glm::vec3(_minPoint.x + _extentX, _minPoint.y + _extentY, _minPoint.z);
+	points[6] = glm::vec3(_minPoint.x, _minPoint.y + _extentY, _minPoint.z + _extentZ);
+	points[7] = _maxPoint;
 }
 
 void AABB::getExtents(float& x, float& y, float& z) const

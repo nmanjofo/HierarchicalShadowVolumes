@@ -17,7 +17,12 @@ find_package(SDL2 REQUIRED)
 find_package(assimp REQUIRED)
 find_package(DevIL REQUIRED)
 find_package(OpenGL REQUIRED)
-
+find_package(OpenMP)
+if (OPENMP_FOUND)
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
+    set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}")
+endif()
 
 set(SRC_FILES
 	${PROJECT_SRC_DIR}/AABB.cpp
@@ -31,7 +36,6 @@ set(SRC_FILES
     ${PROJECT_SRC_DIR}/GLProgram.cpp
 	${PROJECT_SRC_DIR}/HighResolutionTimer.cpp
 	${PROJECT_SRC_DIR}/HSRenderer.cpp
-    ${PROJECT_SRC_DIR}/GeometryOperations.cpp
 	${PROJECT_SRC_DIR}/main.cpp
 	${PROJECT_SRC_DIR}/ModelLoader.cpp
 	${PROJECT_SRC_DIR}/MultiBitArray.cpp

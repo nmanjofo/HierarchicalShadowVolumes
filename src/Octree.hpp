@@ -3,7 +3,7 @@
 #include "AABB.hpp"
 #include "Edge.hpp"
 #include <vector>
-#include <set>
+#include <algorithm>
 
 #define OCTREE_NUM_CHILDREN 8
 
@@ -26,6 +26,18 @@ struct Node
 		edgesMayCast.clear();
 		edgesAlwaysCast.clear();
 		volume = AABB();
+	}
+
+	void shrinkEdgeVectors()
+	{
+		edgesMayCast.shrink_to_fit();
+		edgesAlwaysCast.shrink_to_fit();
+	}
+
+	void sortEdgeVectors()
+	{
+		std::sort(edgesMayCast.begin(), edgesMayCast.end());
+		std::sort(edgesAlwaysCast.begin(), edgesAlwaysCast.end());
 	}
 };
 
@@ -66,6 +78,8 @@ public:
 	unsigned int getTotalNumNodes() const;
 
 	size_t getOctreeSizeBytes() const;
+
+	void makeNodesFit();
 
 private:
 	unsigned int _deepestLevel;

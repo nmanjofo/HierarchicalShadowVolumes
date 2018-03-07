@@ -50,8 +50,8 @@ private:
 	//Shadow volume rendering
 	void _updateSides();
 
-	void _drawSides(const glm::mat4& mvp);
-	void _drawEdges(const glm::mat4& mvp);
+	void _visualizeSides(const glm::mat4& mvp);
+	void _visualizeEdges(const glm::mat4& mvp);
 
 	void _drawLightCap();
 	void _drawDarkCap();
@@ -65,7 +65,7 @@ private:
 	//void _loadOctree();
 	//void _loadOctree2();
 	//void _processOctree();
-	void _testOctree();
+	//void _testOctree();
 	
 
 	GLuint _sidesVBO;
@@ -87,9 +87,6 @@ private:
 	std::vector<Triangle> _pretransformedTriangles;
 
 	std::vector<glm::vec4> _sides;
-
-	std::shared_ptr<Octree>	_octree;
-	std::shared_ptr<OctreeVisitor> _octreeVisitor;
 
 	std::shared_ptr<AbstractSilhouetteMethod> _silhouetteMethod;
 };

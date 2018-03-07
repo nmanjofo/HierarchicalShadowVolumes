@@ -289,14 +289,19 @@ size_t Octree::getOctreeSizeBytes() const
 
 	sz += _nodes.size() * sizeof(AABB);
 
-	unsigned int numIndices = 0;
+	uint64_t numIndices = 0;
 	for(const auto node : _nodes)
 	{
 		numIndices += node.edgesAlwaysCast.size();
 		numIndices += node.edgesMayCast.size();
 	}
 
-	sz += sizeof(unsigned int) * numIndices;
+	sz += sizeof(int) * numIndices;
 
 	return sz;
+}
+
+void Octree::makeNodesFit()
+{
+	_nodes.shrink_to_fit();
 }

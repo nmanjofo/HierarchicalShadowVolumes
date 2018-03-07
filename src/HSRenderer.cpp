@@ -1,7 +1,7 @@
 #include <iostream>
 #include <algorithm>
 
-#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtx/transform.hpp>
 
 #include "HSRenderer.hpp"
 #include "ShaderCompiler.hpp"
@@ -19,8 +19,9 @@ HierarchicalSilhouetteRenderer::HierarchicalSilhouetteRenderer()
 bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned int screenWidth, unsigned int screenHeight)
 {
 	_scene = scene;
-	//_scene->lightPos = glm::vec3(0, 9.9, 0);
 	_scene->lightPos = glm::vec3(0, -8, 4);
+	//_scene->lightPos = glm::vec3(0, 100, 0);
+	_scene->lightPos = glm::vec3(0, 1700, 0);
 	
 	_initVoxelSpace();
 
@@ -31,13 +32,24 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	_allocateTriangleVector();
 	_generateScenePretransformedGeometry();
 	
+	HighResolutionTimer timer;
+	timer.reset();
+
 	EdgeExtractor extractor;
 	extractor.extractEdgesFromTriangles(_pretransformedTriangles, _edges);
+	
+	float dt = timer.getElapsedTimeFromLastQueryMilliseconds();
 
+	std::cout << "Edge extraction took " << dt << "ms\n";
 	std::cout << "Scene has " << _pretransformedTriangles.size() * 3 << " triangles\n";
 	std::cout << "Scene has " << _edges.size() << " edges\n";
 	std::cout << "Light pos: " << _scene->lightPos.x << ", " << _scene->lightPos.y << ", " << _scene->lightPos.z << std::endl;
-	
+	auto minP = scene->bbox.getMinPoint();
+	auto maxP = scene->bbox.getMaxPoint();
+	std::cout << "Scene AABB: " << minP.x << ", " << minP.y << ", " << minP.z << " Max: " << maxP.x << ", " << maxP.y << ", " << maxP.z << "\n";
+
+	timer.reset();
+
 	/*
 	{
 		VoxelParams params;
@@ -55,14 +67,15 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 		OctreeParams params;
 		params.maxDepthLevel = 5;
 
-		//AABB space;
-		//space.setMinMaxPoints(glm::vec3(-50, -50, -50), glm::vec3(50, 50, 50));
-
 		_silhouetteMethod = std::make_shared<OctreeSilhouettes>();
 		_silhouetteMethod->initialize(_edges, _voxelSpace, &params);
 		std::cout << "Octree has size " << _silhouetteMethod->getAccelerationStructureSizeBytes() / 1024.0f / 1024.0f << "MB\n";
 	}
 	//*/
+
+	dt = timer.getElapsedTimeFromLastQueryMilliseconds();
+
+	std::cout << "Acceleration structure took " << dt / 1000.0f << " seconds to build\n";
 
 	if (!_initSidesRenderData())
 		return false;
@@ -81,6 +94,12 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 
 	_edgeVisualizer.loadEdges(_edges);
 	
+	//--
+	_edges.clear();
+	_pretransformedTriangles.clear();
+	_scene.reset();
+	//--
+
 	_updateSides();
 	
 	//_initOctree();
@@ -95,56 +114,7 @@ void HierarchicalSilhouetteRenderer::_initGL(unsigned int screenWidth, unsigned 
 	glViewport(0, 0, screenWidth, screenHeight);
 	glClearColor(1, 1, 1, 1);
 }
-/*
-void HierarchicalSilhouetteRenderer::_initOctree()
-{
-	AABB space;
-	space.setMinMaxPoints(glm::vec3(-50, -50, -50), glm::vec3(50, 50, 50));
-	
-	_octree = std::make_shared<Octree>(5, space);
-	_octreeVisitor = std::make_shared<OctreeVisitor>(_octree);
 
-	HighResolutionTimer tmr;
-	tmr.reset();
-
-	//_loadOctree();
-	_loadOctree2();
-
-	const auto buildTime = tmr.getElapsedTimeMilliseconds();
-
-	const float sz = _octree->getOctreeSizeBytes()/1024.0f/1024.0f;
-
-	_processOctree();
-
-	const auto processTime = tmr.getElapsedTimeFromLastQueryMilliseconds();
-
-	std::cout << "Time to build: " << buildTime << "ms\nTime to postprocess: " << processTime << "ms" << std::endl;
-	std::cout << "Unprocessed size " << sz << "MB, processed: " << _octree->getOctreeSizeBytes() / 1024.0f / 1024.0f << "MB" << std::endl;
-	//_testOctree();
-}
-
-
-void HierarchicalSilhouetteRenderer::_loadOctree()
-{
-	unsigned int i = 0;
-	for (const auto edge : _edges)
-	{
-		_octreeVisitor->addEdge(edge, i);
-		++i;
-	}
-}
-
-void HierarchicalSilhouetteRenderer::_loadOctree2()
-{
-	_octreeVisitor->addEdges(_edges);
-}
-
-void HierarchicalSilhouetteRenderer::_processOctree()
-{
-	_octreeVisitor->processPotentialEdges();
-	_octreeVisitor->cleanEmptyNodes();
-}
-*/
 void HierarchicalSilhouetteRenderer::onUpdate(float timeSinceLastUpdateMs)
 {
 	
@@ -159,8 +129,8 @@ void HierarchicalSilhouetteRenderer::onWindowRedraw(glm::mat4 cameraViewProjecti
 {	
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	_drawSides(cameraViewProjectionMatrix);
-	_drawEdges(cameraViewProjectionMatrix);
+	_visualizeSides(cameraViewProjectionMatrix);
+	_visualizeEdges(cameraViewProjectionMatrix);
 
 
 	//_drawScenePhong(cameraViewProjectionMatrix, cameraPosition);
@@ -246,10 +216,10 @@ void HierarchicalSilhouetteRenderer::_generateSidesFromEdgeIndices(const std::ve
 	//std::sort(edges.begin(), edges.end());
 
 	std::cout << "Silhouette consists of " << numSilhouetteEdges << " edges\n";
-	for(const auto edge: edges)
-	{
-		std::cout << edge << std::endl;
-	}
+	//for(const auto edge: edges)
+	//{
+	//	std::cout << edge << std::endl;
+	//}
 }
 
 void HierarchicalSilhouetteRenderer::_generatePushSideFromEdge(const glm::vec3& lightPos, const Edge& edge, int multiplicitySign, std::vector<glm::vec4>& sides) const
@@ -296,7 +266,7 @@ bool HierarchicalSilhouetteRenderer::_initSidesRenderData()
 	return true;
 }
 
-void HierarchicalSilhouetteRenderer::_drawSides(const glm::mat4& mvp)
+void HierarchicalSilhouetteRenderer::_visualizeSides(const glm::mat4& mvp)
 {
 	const glm::vec3 color = glm::vec3(0, 1, 0);
 
@@ -317,7 +287,7 @@ void HierarchicalSilhouetteRenderer::_drawSides(const glm::mat4& mvp)
 	glDisable(GL_CULL_FACE);
 }
 
-void HierarchicalSilhouetteRenderer::_drawEdges(const glm::mat4& mvp)
+void HierarchicalSilhouetteRenderer::_visualizeEdges(const glm::mat4& mvp)
 {
 	const glm::vec3 color = glm::vec3(1, 0, 0);
 
@@ -366,39 +336,5 @@ void HierarchicalSilhouetteRenderer::_drawScenePhong(const glm::mat4& vp, const 
 
 void HierarchicalSilhouetteRenderer::_initVoxelSpace()
 {
-	_voxelSpace.setMinMaxPoints(glm::vec3(-10, -10, -10), glm::vec3(10, 10, 10));
-}
-
-void HierarchicalSilhouetteRenderer::_testOctree()
-{
-	auto a = _octree->getNodeParent(0);
-	a = _octree->getNodeParent(70);
-
-	_octree->splitNode(0);
-
-	_octree->splitNode(1);
-	_octree->splitNode(2);
-	_octree->splitNode(3);
-	_octree->splitNode(4);
-	_octree->splitNode(5);
-	_octree->splitNode(6);
-	_octree->splitNode(7);
-	_octree->splitNode(8);
-
-	//Should trigger assertion
-	//_octree->splitNode(1000);
-
-	a = _octree->getChildrenStartingId(0);
-	a = _octree->getChildrenStartingId(15);
-	a = _octree->getChildrenStartingId(7);
-	a = _octree->getChildrenStartingId(40);
-
-	a = _octree->getNodeRecursionLevel(22);
-
-	a = _octree->getLowestLevelCellIndexFromPointInSpace(glm::vec3(1000, 0, 0));
-	a = _octree->getLowestLevelCellIndexFromPointInSpace(glm::vec3(0, 0, 0));
-	AABB bb = _octree->getNodeVolume(a);
-
-	a = _octree->getLowestLevelCellIndexFromPointInSpace(glm::vec3(5, 8, 2));
-	bb = _octree->getNodeVolume(a);
+	_scene->bbox.getTransformedAABB(glm::scale(glm::vec3(10.0f, 10.0f, 10.0f)), _voxelSpace);
 }

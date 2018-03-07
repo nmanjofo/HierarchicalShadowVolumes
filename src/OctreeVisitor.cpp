@@ -5,6 +5,9 @@
 #include <stack>
 #include <iostream>
 
+#include <omp.h>
+#include "HighResolutionTimer.hpp"
+
 OctreeVisitor::OctreeVisitor(std::shared_ptr<Octree> octree)
 {
 	_octree = octree;
@@ -66,11 +69,25 @@ void OctreeVisitor::addEdges(const EDGE_CONTAINER_TYPE& edges)
 	std::vector< std::vector<Plane> > edgePlanes;
 	_generateEdgePlanes(edges, edgePlanes);
 	
+	HighResolutionTimer t;
+	t.reset();
 	_addEdgesOnLowestLevel(edgePlanes, edges);
+	auto dt = t.getElapsedTimeFromLastQueryMilliseconds();
 
+	std::cout << "Adding edges took " << dt / 1000.0f << " sec\n";
+	t.reset();
 	const auto startingLevel = _octree->getDeepestLevel() - 1;
 	_propagatePotentiallySilhouetteEdgesUpFromLevel(startingLevel);
+	dt = t.getElapsedTimeFromLastQueryMilliseconds();
+
+	std::cout << "Propagate Potential edges took " << dt / 1000.0f << " sec\n";
+	t.reset();
+
 	_propagateSilhouetteEdgesUpFromLevel(startingLevel);
+
+	dt = t.getElapsedTimeFromLastQueryMilliseconds();
+
+	std::cout << "Propagate Silhouette edges took " << dt / 1000.0f << " sec\n";
 }
 
 void OctreeVisitor::_generateEdgePlanes(const EDGE_CONTAINER_TYPE& edges, std::vector< std::vector<Plane> >& planes) const
@@ -104,11 +121,12 @@ void OctreeVisitor::_addEdgesOnLowestLevel(std::vector< std::vector<Plane> >& ed
 	
 	std::cout << "Total iterations: " << (stopIndex - startingIndex) / OCTREE_NUM_CHILDREN << "\n";
 
-	for (unsigned int i = startingIndex; i < stopIndex; i += OCTREE_NUM_CHILDREN)
+	#pragma omp parallel for
+	for (int i = startingIndex; i < stopIndex; i += OCTREE_NUM_CHILDREN)
 	{
-		static int a = 0;
 		_addEdgesSyblingsParent(edgePlanes, edges, i);
-		std::cout << "Iter " << a++ << " Added edges to node " << i << " current tree size " << float(_octree->getOctreeSizeBytes()) / 1024.0 / 1024.0 << "MB" << std::endl;
+		//static int a = 0;
+		//std::cout << "Iter " << a++ << " Added edges to node " << i << " current tree size " << float(_octree->getOctreeSizeBytes()) / 1024.0 / 1024.0 << "MB" << std::endl;
 	}
 }
 
@@ -164,7 +182,7 @@ void OctreeVisitor::_addEdgesSyblingsParent(const std::vector< std::vector<Plane
 				if (sameFacing)
 				{
 					//TODO - problem: hrana 0 sa neda ulozit zaporne!!!
-					int sign = silhouetteIndices[0] < 0 ? -1 : 1;
+					const int sign = silhouetteIndices[0] < 0 ? -1 : 1;
 					_storeEdgeIsAlwaysSilhouette(parent, sign * int(edgeIndex));
 					numSilhouette = 0;
 				}
@@ -179,6 +197,18 @@ void OctreeVisitor::_addEdgesSyblingsParent(const std::vector< std::vector<Plane
 
 		++edgeIndex;
 	}
+	
+	for(auto i = startingID; i<(startingID+OCTREE_NUM_CHILDREN); ++i)
+	{
+		auto node = _octree->getNode(i);
+
+		if (node)
+		{
+			node->shrinkEdgeVectors();
+			node->sortEdgeVectors();
+		}
+	}
+	//*/
 }
 
 bool OctreeVisitor::_doAllSilhouetteFaceTheSame(const int(&indices)[OCTREE_NUM_CHILDREN]) const
@@ -471,7 +501,7 @@ void OctreeVisitor::_expandWholeOctree()
 
 	nodeStack.push(0);
 
-	const auto deepestLevel = _octree->getDeepestLevel();
+	const int deepestLevel = _octree->getDeepestLevel();
 
 	while(!nodeStack.empty())
 	{
@@ -489,6 +519,8 @@ void OctreeVisitor::_expandWholeOctree()
 				nodeStack.push(startingChild + i);
 		}
 	}
+
+	_octree->makeNodesFit();
 }
 
 int OctreeVisitor::getLowestNodeIndexFromPoint(const glm::vec3& point) const
@@ -536,6 +568,8 @@ void OctreeVisitor::getSilhouttePotentialEdgesFromNodeUp(std::vector<int>& poten
 
 		silhouette.insert(silhouette.end(), node->edgesAlwaysCast.begin(), node->edgesAlwaysCast.end());
 		potential.insert(potential.end(), node->edgesMayCast.begin(), node->edgesMayCast.end());
+
+		std::cout << "Getting " << node->edgesAlwaysCast.size() << " silhouette and " << node->edgesMayCast.size() << " potential from node " << currentNodeID << std::endl;
 
 		currentNodeID = _octree->getNodeParent(currentNodeID);
 	}

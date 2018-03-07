@@ -4,6 +4,7 @@
 #include "Edge.hpp"
 #include "GeometryOperations.hpp"
 #include <memory>
+#include <set>
 
 class OctreeVisitor
 {
