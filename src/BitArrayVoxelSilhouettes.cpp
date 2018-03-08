@@ -120,7 +120,7 @@ int BitArrayVoxelSilhouettes::_getVoxelIndexAABBFromPos(const glm::vec3& lightPo
 	return voxelIndex;
 }
 
-size_t BitArrayVoxelSilhouettes::getAccelerationStructureSizeBytes() const
+uint64_t BitArrayVoxelSilhouettes::getAccelerationStructureSizeBytes() const
 {
 	return _edgeBitmasks.size() * _edgeBitmasks[0].getNumCells() * (MBA_MAX_BITS_PER_CELL / 8);
 }

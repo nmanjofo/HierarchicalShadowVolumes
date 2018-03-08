@@ -25,7 +25,7 @@ public:
 
 	void getSilhouetteEdgesForLightPos(const glm::vec3& lightPos, std::vector<int>& potentialEdgeIndices, std::vector<int>& silhouetteEdgeIndices) override;
 
-	size_t getAccelerationStructureSizeBytes() const override;
+	uint64_t getAccelerationStructureSizeBytes() const override;
 
 	std::vector<MultiBitArray>* getEdgeBitArrays()
 	{

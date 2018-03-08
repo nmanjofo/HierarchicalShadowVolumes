@@ -73,11 +73,13 @@ public:
 	bool nodeExists(unsigned int nodeID) const;
 	bool childrenExist(unsigned int nodeID) const;
 
-	unsigned int getNumCellsInPreviousLevels(int level) const;
+	unsigned int getNumNodesInPreviousLevels(int level) const;
 	unsigned int getDeepestLevel() const;
 	unsigned int getTotalNumNodes() const;
+	int getLevelFirstNodeID(unsigned int level) const;
+	int getNumNodesInLevel(unsigned int level) const;
 
-	size_t getOctreeSizeBytes() const;
+	uint64_t getOctreeSizeBytes() const;
 
 	void makeNodesFit();
 

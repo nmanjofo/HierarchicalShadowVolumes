@@ -116,7 +116,7 @@ void OctreeVisitor::_addEdgesOnLowestLevel(std::vector< std::vector<Plane> >& ed
 	const int deepestLevel = _octree->getDeepestLevel();
 	const int levelSize = ipow(OCTREE_NUM_CHILDREN, deepestLevel);
 
-	const int startingIndex = _octree->getNumCellsInPreviousLevels(deepestLevel);
+	const int startingIndex = _octree->getNumNodesInPreviousLevels(deepestLevel);
 	const int stopIndex = _octree->getTotalNumNodes();
 	
 	std::cout << "Total iterations: " << (stopIndex - startingIndex) / OCTREE_NUM_CHILDREN << "\n";
@@ -148,7 +148,7 @@ void OctreeVisitor::_addEdgesSyblingsParent(const std::vector< std::vector<Plane
 
 		if(numOppositeVertices!=2)
 		{
-			if (numOppositeVertices == 1 && parent >=0)
+			if (numOppositeVertices == 1 && parent >= 0)
 				_storeEdgeIsPotentiallySilhouette(parent, edgeIndex);
 
 			edgeIndex++;
@@ -356,7 +356,7 @@ void OctreeVisitor::_processSilhouetteEdgesInLevel(unsigned int level)
 
 int	OctreeVisitor::_getFirstNodeIdInLevel(unsigned int level) const
 {
-	return _octree->getNumCellsInPreviousLevels(level);
+	return _octree->getNumNodesInPreviousLevels(level);
 }
 
 void OctreeVisitor::_getAllPotentialEdgesSyblings(unsigned int startingID, std::set<unsigned int>& edges) const

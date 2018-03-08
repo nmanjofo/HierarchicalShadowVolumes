@@ -38,7 +38,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	EdgeExtractor extractor;
 	extractor.extractEdgesFromTriangles(_pretransformedTriangles, _edges);
 	
-	float dt = timer.getElapsedTimeFromLastQueryMilliseconds();
+	auto dt = timer.getElapsedTimeFromLastQueryMilliseconds();
 
 	std::cout << "Edge extraction took " << dt << "ms\n";
 	std::cout << "Scene has " << _pretransformedTriangles.size() * 3 << " triangles\n";
@@ -49,7 +49,16 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	std::cout << "Scene AABB: " << minP.x << ", " << minP.y << ", " << minP.z << " Max: " << maxP.x << ", " << maxP.y << ", " << maxP.z << "\n";
 
 	timer.reset();
+	//--
+	unsigned int badEdges = 0;
+	for(const auto& edge : _edges)
+	{
+		const auto s = edge.second.size();
 
+		if (s == 0 || s > 2)
+			++badEdges;
+	}
+	//--
 	/*
 	{
 		VoxelParams params;
@@ -70,6 +79,8 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 		_silhouetteMethod = std::make_shared<OctreeSilhouettes>();
 		_silhouetteMethod->initialize(_edges, _voxelSpace, &params);
 		std::cout << "Octree has size " << _silhouetteMethod->getAccelerationStructureSizeBytes() / 1024.0f / 1024.0f << "MB\n";
+		
+		std::dynamic_pointer_cast<OctreeSilhouettes>(_silhouetteMethod)->printLevelOccupancies();
 	}
 	//*/
 

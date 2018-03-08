@@ -19,7 +19,9 @@ public:
 
 	void clear() override;
 
-	size_t getAccelerationStructureSizeBytes() const override;
+	uint64_t getAccelerationStructureSizeBytes() const override;
+
+	void printLevelOccupancies() const;
 
 private:
 

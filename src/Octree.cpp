@@ -89,7 +89,7 @@ int Octree::getNodeParent(unsigned int nodeID) const
 
 	const int parentRelativeID = idInLevel / OCTREE_NUM_CHILDREN;
 
-	return parentRelativeID + getNumCellsInPreviousLevels(nodeLevel - 1);
+	return parentRelativeID + getNumNodesInPreviousLevels(nodeLevel - 1);
 }
 
 int Octree::getNodeRecursionLevel(unsigned int nodeID) const
@@ -115,7 +115,7 @@ int Octree::getNodeIdInLevel(unsigned int nodeID) const
 
 int Octree::getNodeIdInLevel(unsigned int nodeID, unsigned int level) const
 {
-	return nodeID - getNumCellsInPreviousLevels(level);
+	return nodeID - getNumNodesInPreviousLevels(level);
 }
 
 int Octree::getLowestLevelCellIndexFromPointInSpace(const glm::vec3& point)
@@ -195,7 +195,7 @@ void Octree::deleteNodeSubtree(unsigned nodeID)
 	}
 }
 
-unsigned int Octree::getNumCellsInPreviousLevels(int level) const
+unsigned int Octree::getNumNodesInPreviousLevels(int level) const
 {
 	const int l = level - 1;
 
@@ -282,15 +282,33 @@ unsigned int Octree::getTotalNumNodes() const
 	return _levelSizesInclusiveSum[_deepestLevel];
 }
 
-
-size_t Octree::getOctreeSizeBytes() const
+int Octree::getLevelFirstNodeID(unsigned int level) const
 {
-	unsigned int sz = 0;
+	if (level > _deepestLevel)
+		return -1;
+
+	if (level == 0)
+		return 0;
+
+	return _levelSizesInclusiveSum[level - 1];
+}
+
+int Octree::getNumNodesInLevel(unsigned int level) const
+{
+	if (level > _deepestLevel)
+		return -1;
+
+	return ipow(OCTREE_NUM_CHILDREN, level);
+}
+
+uint64_t Octree::getOctreeSizeBytes() const
+{
+	uint64_t sz = 0;
 
 	sz += _nodes.size() * sizeof(AABB);
 
 	uint64_t numIndices = 0;
-	for(const auto node : _nodes)
+	for(const auto& node : _nodes)
 	{
 		numIndices += node.edgesAlwaysCast.size();
 		numIndices += node.edgesMayCast.size();

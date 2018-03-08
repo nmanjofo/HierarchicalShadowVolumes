@@ -26,7 +26,7 @@ void OctreeSilhouettes::_loadOctreeTopBottom(const EDGE_CONTAINER_TYPE& edges)
 	}
 }
 
-size_t OctreeSilhouettes::getAccelerationStructureSizeBytes() const
+uint64_t OctreeSilhouettes::getAccelerationStructureSizeBytes() const
 {
 	return _octree->getOctreeSizeBytes();
 }
@@ -59,4 +59,26 @@ void OctreeSilhouettes::clear()
 	
 }
 
+void OctreeSilhouettes::printLevelOccupancies() const
+{
+	for(int i = _octree->getDeepestLevel(); i > 0; --i)
+	{
+		const auto firstNode = _octree->getLevelFirstNodeID(i);
+		const auto levelSize = _octree->getNumNodesInLevel(i);
 
+		uint64_t numPotential = 0;
+		uint64_t numSilhouette = 0;
+		for(int n = firstNode; n<(firstNode + levelSize); ++n)
+		{
+			const auto node = _octree->getNode(n);
+
+			if(n)
+			{
+				numPotential += node->edgesMayCast.size();
+				numSilhouette += node->edgesAlwaysCast.size();
+			}
+		}
+
+		std::cout << "Level " << i << ": potential " << numPotential << " silhouette " << numSilhouette << std::endl;
+	}
+}
