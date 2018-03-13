@@ -21,7 +21,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	_scene = scene;
 	_scene->lightPos = glm::vec3(0, -8, 4);
 	//_scene->lightPos = glm::vec3(0, 100, 0);
-	_scene->lightPos = glm::vec3(0, 1700, 0);
+	//_scene->lightPos = glm::vec3(0, 1700, 0);
 	
 	_initVoxelSpace();
 
@@ -58,8 +58,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 		if (s == 0 || s > 2)
 			++badEdges;
 	}
-	//--
-	/*
+	
 	{
 		VoxelParams params;
 		params.numVoxelsX = params.numVoxelsY = params.numVoxelsZ = 30;
@@ -71,7 +70,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	}
 	//*/
 	
-	
+	/*
 	{
 		OctreeParams params;
 		params.maxDepthLevel = 5;
@@ -223,14 +222,15 @@ void HierarchicalSilhouetteRenderer::_generateSidesFromEdgeIndices(const std::ve
 			edges.push_back(edge);
 		}
 	}
-
-	//std::sort(edges.begin(), edges.end());
+	//--
+	std::sort(edges.begin(), edges.end());
 
 	std::cout << "Silhouette consists of " << numSilhouetteEdges << " edges\n";
-	//for(const auto edge: edges)
-	//{
-	//	std::cout << edge << std::endl;
-	//}
+	for(const auto edge: edges)
+	{
+		std::cout << edge << std::endl;
+	}
+	//--
 }
 
 void HierarchicalSilhouetteRenderer::_generatePushSideFromEdge(const glm::vec3& lightPos, const Edge& edge, int multiplicitySign, std::vector<glm::vec4>& sides) const
@@ -238,7 +238,7 @@ void HierarchicalSilhouetteRenderer::_generatePushSideFromEdge(const glm::vec3& 
 	glm::vec4 lowInfinity = glm::vec4(edge.lowerPoint - lightPos, 0);
 	glm::vec4 highInfinity = glm::vec4(edge.higherPoint - lightPos, 0);
 
-	if (multiplicitySign > 0)
+	if (multiplicitySign < 0)
 	{
 		sides.push_back(lowInfinity);
 		sides.push_back(glm::vec4(edge.lowerPoint, 1));
@@ -248,7 +248,7 @@ void HierarchicalSilhouetteRenderer::_generatePushSideFromEdge(const glm::vec3& 
 		sides.push_back(lowInfinity);
 		sides.push_back(glm::vec4(edge.higherPoint, 1));
 	}
-	else if(multiplicitySign<0)
+	else if(multiplicitySign > 0)
 	{
 		sides.push_back(highInfinity);
 		sides.push_back(glm::vec4(edge.higherPoint, 1));

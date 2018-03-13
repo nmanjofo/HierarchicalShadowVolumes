@@ -99,6 +99,8 @@ void OctreeVisitor::_generateEdgePlanes(const EDGE_CONTAINER_TYPE& edges, std::v
 	unsigned int index = 0;
 	for(const auto edgeInfo : edges)
 	{
+		planes[index].reserve(edgeInfo.second.size());
+
 		for (const auto oppositeVertex : edgeInfo.second)
 		{
 			Plane p;
@@ -132,6 +134,7 @@ void OctreeVisitor::_addEdgesOnLowestLevel(std::vector< std::vector<Plane> >& ed
 
 void OctreeVisitor::_addEdgesSyblingsParent(const std::vector< std::vector<Plane> >& edgePlanes, const EDGE_CONTAINER_TYPE& edges, unsigned int startingID)
 {
+
 	unsigned int edgeIndex = 0;
 
 	const int parent = _octree->getNodeParent(startingID);

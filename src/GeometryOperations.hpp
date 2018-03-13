@@ -3,7 +3,6 @@
 #include "AABB.hpp"
 #include "Plane.hpp"
 #include "Edge.hpp"
-#include "EdgeExtractor.hpp"
 
 #include <vector>
 
@@ -80,7 +79,7 @@ namespace GeometryOps
 		const auto& oppositeVertices = edgeInfo.second;
 
 		Plane lightPlane;
-		lightPlane.createFromPointsCCW(edge.lowerPoint, edge.higherPoint, lightPos);
+		lightPlane.createFromPointsCCW(edge.lowerPoint, lightPos, edge.higherPoint);
 		int multiplicity = 0;
 		for (const auto& oppositeVertex : oppositeVertices)
 		{
@@ -100,13 +99,13 @@ namespace GeometryOps
 
 		if (result1 == TestResult::INTERSECTS_ON || result2 == TestResult::INTERSECTS_ON)
 			result = EdgeSilhouetness::EDGE_POTENTIALLY_SILHOUETTE;
-		else if ((int(result1)*int(result2)) < 0)
+		else
 		{
 			int multiplicity = calcEdgeMultiplicity(edgeInfo, voxel.getMinPoint());
 
-			if (multiplicity >= 0)
+			if (multiplicity > 0)
 				result = EdgeSilhouetness::EDGE_IS_SILHOUETTE_PLUS;
-			else
+			else if (multiplicity < 0)
 				result = EdgeSilhouetness::EDGE_IS_SILHOUETTE_MINUS;
 		}
 
@@ -115,11 +114,6 @@ namespace GeometryOps
 
 	inline void buildEdgeTrianglePlane(const Edge& edge, const glm::vec4& oppositeVertex, Plane& plane)
 	{
-		const bool isCCW = EdgeExtractor::decodeEdgeWindingIsCCW(oppositeVertex);
-
-		if (isCCW)
-			plane.createFromPointsCCW(edge.lowerPoint, edge.higherPoint, glm::vec3(oppositeVertex));
-		else
-			plane.createFromPointsCCW(edge.higherPoint, edge.lowerPoint, glm::vec3(oppositeVertex));
+		plane.createFromPointsCCW(edge.lowerPoint, glm::vec3(oppositeVertex), edge.higherPoint);
 	}
 };

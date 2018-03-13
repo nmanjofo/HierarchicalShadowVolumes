@@ -1,6 +1,6 @@
 #include "Edge.hpp"
 
-Edge::Edge(const glm::vec4& v1, const glm::vec4& v2, bool& isCCW)
+Edge::Edge(const glm::vec4& v1, const glm::vec4& v2)
 {
 	//If swap occurs, that means 
 	//the stored form of the edge is CW and not CCW
@@ -9,13 +9,11 @@ Edge::Edge(const glm::vec4& v1, const glm::vec4& v2, bool& isCCW)
 	{
 		lowerPoint = glm::vec3(v1);
 		higherPoint = glm::vec3(v2);
-		isCCW = true;
 	}
 	else
 	{
 		lowerPoint = glm::vec3(v2);
 		higherPoint = glm::vec3(v1);
-		isCCW = false;
 	}
 }
 

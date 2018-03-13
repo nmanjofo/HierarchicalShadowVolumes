@@ -10,7 +10,7 @@ struct Edge
 	glm::vec3 lowerPoint;
 	glm::vec3 higherPoint;
 
-	Edge(const glm::vec4& v1, const glm::vec4& v2, bool& isCCW);
+	Edge(const glm::vec4& v1, const glm::vec4& v2);
 
 	bool operator<(const Edge& other) const;
 
