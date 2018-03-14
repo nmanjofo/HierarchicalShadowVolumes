@@ -73,19 +73,36 @@ namespace GeometryOps
 		return result;
 	}
 
+	inline int greaterVec(const glm::vec3& a, const glm::vec3& b)
+	{
+		return int(glm::dot(glm::vec3(glm::sign(a - b)), glm::vec3(4, 2, 1)));
+	}
+
+	inline int computeMult(const glm::vec3& A, const glm::vec3& B, const glm::vec3& C, const glm::vec4& L) 
+	{
+		glm::vec3 n = glm::cross(C - A, glm::vec3(L) - A*L.w);
+		return int(glm::sign(dot(n, B - A)));
+	}
+
+	inline int currentMultiplicity(const glm::vec3& A, const glm::vec3& B, const glm::vec3& O, const glm::vec4& L) 
+	{
+		if (greaterVec(A, O)>0)
+			return computeMult(O, A, B, L);
+		else if (greaterVec(B, O)>0)
+			return -computeMult(A, O, B, L);
+		else
+			return computeMult(A, B, O, L);
+	}
+
 	inline int calcEdgeMultiplicity(const EDGE_TYPE& edgeInfo, const glm::vec3& lightPos)
 	{
 		const auto& edge = edgeInfo.first;
 		const auto& oppositeVertices = edgeInfo.second;
 
-		Plane lightPlane;
-		lightPlane.createFromPointsCCW(edge.lowerPoint, lightPos, edge.higherPoint);
 		int multiplicity = 0;
+		const glm::vec4 L = glm::vec4(lightPos, 1);
 		for (const auto& oppositeVertex : oppositeVertices)
-		{
-			const float r = GeometryOps::testPlanePoint(lightPlane, glm::vec3(oppositeVertex));
-			multiplicity += (r > 0) - (r < 0);
-		}
+			multiplicity += currentMultiplicity(edge.lowerPoint, edge.higherPoint, glm::vec3(oppositeVertex), L);
 
 		return multiplicity;
 	}

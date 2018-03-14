@@ -96,20 +96,18 @@ void OctreeVisitor::_generateEdgePlanes(const EDGE_CONTAINER_TYPE& edges, std::v
 
 	planes.resize(numEdges);
 
-	unsigned int index = 0;
-	for(const auto edgeInfo : edges)
+	#pragma omp parallel for
+	for(int i = 0; i<edges.size(); ++i)
 	{
-		planes[index].reserve(edgeInfo.second.size());
+		planes[i].reserve(edges[i].second.size());
 
-		for (const auto oppositeVertex : edgeInfo.second)
+		for (const auto oppositeVertex : edges[i].second)
 		{
 			Plane p;
-			GeometryOps::buildEdgeTrianglePlane(edgeInfo.first, oppositeVertex, p);
+			GeometryOps::buildEdgeTrianglePlane(edges[i].first, oppositeVertex, p);
 
-			planes[index].push_back(p);
+			planes[i].push_back(p);
 		}
-
-		++index;
 	}
 }
 
