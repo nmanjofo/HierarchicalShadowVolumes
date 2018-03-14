@@ -19,9 +19,9 @@ HierarchicalSilhouetteRenderer::HierarchicalSilhouetteRenderer()
 bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned int screenWidth, unsigned int screenHeight)
 {
 	_scene = scene;
-	_scene->lightPos = glm::vec3(0, -8, 4);
+	//_scene->lightPos = glm::vec3(0, -8, 4);
 	//_scene->lightPos = glm::vec3(0, 100, 0);
-	//_scene->lightPos = glm::vec3(0, 1700, 0);
+	_scene->lightPos = glm::vec3(0, 1700, 0);
 	
 	_initVoxelSpace();
 
@@ -58,7 +58,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 		if (s == 0 || s > 2)
 			++badEdges;
 	}
-	
+	/*
 	{
 		VoxelParams params;
 		params.numVoxelsX = params.numVoxelsY = params.numVoxelsZ = 30;
@@ -70,7 +70,7 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	}
 	//*/
 	
-	/*
+	
 	{
 		OctreeParams params;
 		params.maxDepthLevel = 5;
@@ -222,14 +222,16 @@ void HierarchicalSilhouetteRenderer::_generateSidesFromEdgeIndices(const std::ve
 			edges.push_back(edge);
 		}
 	}
-	//--
-	std::sort(edges.begin(), edges.end());
 
 	std::cout << "Silhouette consists of " << numSilhouetteEdges << " edges\n";
+	//--
+	/*
+	std::sort(edges.begin(), edges.end());
 	for(const auto edge: edges)
 	{
 		std::cout << edge << std::endl;
 	}
+	//*/
 	//--
 }
 

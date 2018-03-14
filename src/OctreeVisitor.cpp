@@ -127,8 +127,10 @@ void OctreeVisitor::_addEdgesOnLowestLevel(std::vector< std::vector<Plane> >& ed
 	for (int i = startingIndex; i < stopIndex; i += OCTREE_NUM_CHILDREN)
 	{
 		_addEdgesSyblingsParent(edgePlanes, edges, i);
-		//static int a = 0;
-		//std::cout << "Iter " << a++ << " Added edges to node " << i << " current tree size " << float(_octree->getOctreeSizeBytes()) / 1024.0 / 1024.0 << "MB" << std::endl;
+		/*
+		static int a = 0;
+		std::cout << "Iter " << a++ << " Added edges to node " << i << " current tree size " << float(_octree->getOctreeSizeBytes()) / 1024.0 / 1024.0 << "MB" << std::endl;
+		//*/
 	}
 }
 
@@ -302,11 +304,12 @@ void OctreeVisitor::_processPotentialEdgesInLevel(unsigned int level)
 	
 	assert(startingID >= 0);
 
-	const unsigned int stopId = ipow(OCTREE_NUM_CHILDREN, level) + startingID;
+	const int stopId = ipow(OCTREE_NUM_CHILDREN, level) + startingID;
 
-	unsigned int currentID = startingID;
+	int currentID = startingID;
 
-	while(currentID<stopId)
+	#pragma omp parallel for
+	for(currentID = startingID; currentID<stopId; currentID += OCTREE_NUM_CHILDREN)
 	{
 		std::set<unsigned int> potentialEdgesSyblings;
 		_getAllPotentialEdgesSyblings(currentID, potentialEdgesSyblings);
@@ -321,8 +324,6 @@ void OctreeVisitor::_processPotentialEdgesInLevel(unsigned int level)
 				_removePotentialEdgeFromSyblings(currentID, edge);
 			}
 		}
-
-		currentID += OCTREE_NUM_CHILDREN;
 	}
 }
 
@@ -333,11 +334,12 @@ void OctreeVisitor::_processSilhouetteEdgesInLevel(unsigned int level)
 
 	assert(startingID >= 0);
 
-	const unsigned int stopId = ipow(OCTREE_NUM_CHILDREN, level) + startingID;
+	const int stopId = ipow(OCTREE_NUM_CHILDREN, level) + startingID;
 
-	unsigned int currentID = startingID;
+	int currentID = startingID;
 
-	while (currentID<stopId)
+	#pragma omp parallel for
+	for (currentID = startingID; currentID<stopId; currentID += OCTREE_NUM_CHILDREN)
 	{
 		std::set<int> silhouetteEdgesSyblings;
 		_getAllSilhouetteEdgesSyblings(currentID, silhouetteEdgesSyblings);
@@ -352,8 +354,6 @@ void OctreeVisitor::_processSilhouetteEdgesInLevel(unsigned int level)
 				_removeSilhouetteEdgeFromSyblings(currentID, edge);
 			}
 		}
-
-		currentID += OCTREE_NUM_CHILDREN;
 	}
 }
 
