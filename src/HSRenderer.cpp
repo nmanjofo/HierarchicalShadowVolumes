@@ -22,7 +22,8 @@ bool HierarchicalSilhouetteRenderer::init(std::shared_ptr<Scene> scene, unsigned
 	//_scene->lightPos = glm::vec3(0, -8, 4);
 	//_scene->lightPos = glm::vec3(0, 100, 0);
 	_scene->lightPos = glm::vec3(0, 1700, 0);
-	
+	//_scene->lightPos = glm::vec3(0, 20, 0);
+
 	_initVoxelSpace();
 
 	_initGL(screenWidth, screenHeight);
@@ -288,16 +289,16 @@ void HierarchicalSilhouetteRenderer::_visualizeSides(const glm::mat4& mvp)
 	_basicProgram.updateUniform("color", color);
 
 	glEnable(GL_DEPTH_CLAMP);
-	glEnable(GL_CULL_FACE);
-	glCullFace(GL_BACK);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
 
 	glBindVertexArray(_sidesVAO);
 	glDrawArrays(GL_TRIANGLES, 0, GLuint(_sides.size()));
 
 	_basicProgram.unbind();
 	glBindVertexArray(0);
-	glDisable(GL_DEPTH_CLAMP);
-	glDisable(GL_CULL_FACE);
+	//glDisable(GL_DEPTH_CLAMP);
+	//glDisable(GL_CULL_FACE);
 }
 
 void HierarchicalSilhouetteRenderer::_visualizeEdges(const glm::mat4& mvp)

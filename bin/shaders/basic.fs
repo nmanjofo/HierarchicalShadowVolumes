@@ -6,5 +6,8 @@ out vec4 c;
 
 void main()
 {
-	c = vec4(color, 1);
+	if(gl_FrontFacing)
+		c = vec4(color, 1);
+	else
+		c = vec4(1, 1, 0, 1);
 }
